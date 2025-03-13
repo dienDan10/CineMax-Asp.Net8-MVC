@@ -1,0 +1,38 @@
+﻿@model Province
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4>
+                        <i class="fa-solid fa-map-location-dot"></i> Province
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Upsert" method="POST">
+                        <input hidden asp-for="@Model.Id"/>
+                        <!-- Province Name -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">
+                                <i class="fa-solid fa-map-marker-alt"></i> Province Name
+                            </label>
+                            <input type="text" asp-for="Name" class="form-control" placeholder="Enter province name" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a class="btn btn-secondary" asp-area="Admin" asp-controller="Province" asp-action="Index">
+                                <i class="fa-solid fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa-solid fa-save"></i> Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

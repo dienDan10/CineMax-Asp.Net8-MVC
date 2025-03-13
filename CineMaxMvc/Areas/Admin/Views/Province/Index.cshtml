@@ -1,0 +1,31 @@
+﻿
+<div class="container-fluid">
+    <div class="row pt-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="text-primary"><i class="fa-solid fa-map-location-dot"></i> Province List</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Admin" asp-controller="Province" asp-action="Upsert" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Add Province
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3 shadow border-0">
+        <div class="card-body">
+            <table id="provinceTable" class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Province Name</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+		<script src="~/js/province.js"></script>
+}
