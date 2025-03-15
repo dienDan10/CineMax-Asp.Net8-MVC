@@ -1,0 +1,144 @@
+﻿@model Movie
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+        <div class="card-header bg-primary p-4 border-0">
+          <h2 class="text-white text-center mb-0 fw-light">
+            <i class="fas fa-film me-2"></i>@(Model?.Id == 0 ? "Add New Movie" : "Edit Movie")
+          </h2>
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+          <form method="post" enctype="multipart/form-data" asp-action="Upsert">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="PosterUrl"/>
+
+            <div class="row">
+              <!-- Left Column -->
+              <div class="col-md-6">
+                <!-- Title Field -->
+                <div class="form-floating mb-4">
+                  <input type="text" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Title" placeholder="Movie Title" required />
+                  <label class="form-label">
+                    <i class="fas fa-heading text-primary me-1"></i> Title
+                  </label>
+                </div>
+
+                <!-- Genre Field -->
+                <div class="form-floating mb-4">
+                  <input type="text" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Genre" placeholder="Genre" required />
+                  <label class="form-label">
+                    <i class="fas fa-tag text-primary me-1"></i> Genre
+                  </label>
+                </div>
+
+                <!-- Director Field -->
+                <div class="form-floating mb-4">
+                  <input type="text" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Director" placeholder="Director" required />
+                  <label class="form-label">
+                    <i class="fas fa-user-tie text-primary me-1"></i> Director
+                  </label>
+                </div>
+
+                <!-- Cast Field -->
+                <div class="form-floating mb-4">
+                  <textarea class="form-control border-0 border-bottom rounded-0" 
+                            asp-for="Cast" placeholder="Cast" rows="5"></textarea>
+                  <label class="form-label">
+                    <i class="fas fa-users text-primary me-1"></i> Cast
+                  </label>
+                </div>
+              </div>
+
+              <!-- Right Column -->
+              <div class="col-md-6">
+                <!-- Release Date Field -->
+                <div class="form-floating mb-4">
+                  <input type="date" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="ReleaseDate" placeholder="Release Date" required />
+                  <label class="form-label">
+                    <i class="fas fa-calendar-alt text-primary me-1"></i> Release Date
+                  </label>
+                </div>
+
+                <!-- Trailer URL Field -->
+                <div class="form-floating mb-4">
+                  <input type="url" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="TrailerUrl" placeholder="Trailer URL" />
+                  <label class="form-label">
+                    <i class="fas fa-video text-primary me-1"></i> Trailer URL
+                  </label>
+                </div>
+
+                <!-- Poster Field -->
+                <div class="mb-4">
+                  <label class="form-label d-flex align-items-center mb-2">
+                    <i class="fas fa-image text-primary me-2"></i> Movie Poster
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                      <i class="fas fa-upload"></i>
+                    </span>
+                    <input type="file" class="form-control" name="file" accept="image/*" />
+                  </div>
+                  <small class="text-muted mt-1 d-block">Upload a high-quality poster image</small>
+                </div>
+
+                <!-- IsActive Switch -->
+                <div class="form-check form-switch mb-4">
+                  <input type="checkbox" class="form-check-input" asp-for="IsActive" id="isActive" />
+                  <label class="form-check-label" for="isActive">
+                     Active Status
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description Field (Full Width) -->
+            <div class="mb-4">
+              <label class="form-label d-flex align-items-center mb-2">
+                <i class="fas fa-align-left text-primary me-2"></i> Description
+              </label>
+              <textarea class="form-control" asp-for="Description" rows="4" id="Description"></textarea>
+              <small class="text-muted mt-1 d-block">Provide a compelling description of the movie</small>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+              <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-5 py-2">
+                <i class="fas fa-save me-2"></i> Save Movie
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer text-center py-3 bg-light">
+          <div class="small"><i class="fas fa-info-circle text-primary me-1"></i> All fields marked with an asterisk (*) are required</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    @{
+                <partial name="_ValidationScriptsPartial"/>
+                <script>
+                      tinymce.init({
+                            selector: '#Description',
+                            plugins: 'autolink lists link image charmap print preview anchor',
+                        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
+                      });
+                </script>
+    }
+}

@@ -1,0 +1,35 @@
+﻿
+<div class="container-fluid">
+    <div class="row pt-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="text-primary"><i class="fa-solid fa-map-location-dot"></i> Movie List</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-area="Admin" asp-controller="Movies" asp-action="Upsert" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Add Movie
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3 shadow border-0">
+        <div class="card-body">
+            <table id="movieTable" class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Movie</th>
+                        <th>Genre</th>
+                        <th>Director</th>
+                        <th>Cast</th>
+                        <th>Release Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+            <script src="~/js/movie.js"></script>
+}

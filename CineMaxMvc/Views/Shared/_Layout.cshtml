@@ -37,11 +37,6 @@
                                 <i class="fas fa-home me-1"></i> Home
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3" asp-area="" asp-controller="Home" asp-action="Privacy">
-                                <i class="fas fa-shield-alt me-1"></i> Privacy
-                            </a>
-                        </li>
 
                         @if (User.IsInRole(Constant.Role_Admin))
                         {
@@ -56,13 +51,23 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item py-2" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                                            <a class="dropdown-item py-2" asp-area="Admin" asp-controller="Movies" asp-action="Index">
                                                 <i class="fas fa-video me-2 text-primary"></i> Movie
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item py-2" asp-area="Admin" asp-controller="Company" asp-action="Index">
                                                 <i class="fas fa-building me-2 text-primary"></i> Theatre
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-area="Admin" asp-controller="Company" asp-action="Index">
+                                                <i class="fas fa-building me-2 text-primary"></i> Screen
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item py-2" asp-area="Admin" asp-controller="Company" asp-action="Index">
+                                                <i class="fas fa-building me-2 text-primary"></i> Seat
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
