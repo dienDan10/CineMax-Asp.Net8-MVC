@@ -1,0 +1,113 @@
+﻿@model ScreenVM
+
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+        <div class="card-header bg-primary p-4 border-0">
+          <h2 class="text-white text-center mb-0 fw-light">
+            <i class="fas fa-tv me-2"></i>@(Model.Screen.Id == 0 ? "Add New Screen" : "Edit Screen")
+          </h2>
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+          <form method="post" asp-action="Upsert">
+            <input type="hidden" asp-for="Screen.Id" />
+            <input type="hidden" asp-for="Screen.TheaterId" />
+            <input type="hidden" asp-for="Theater.Name" />
+
+            <div class="row">
+              <!-- Left Column -->
+              <div class="col-md-6">
+                <!-- Screen Name Field -->
+                <div class="form-floating mb-4">
+                  <input type="text" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Screen.Name" placeholder="Screen Name" required />
+                  <label class="form-label">
+                    <i class="fas fa-tv text-primary me-1"></i> Screen Name
+                  </label>
+                  <span asp-validation-for="Screen.Name" class="text-danger"></span>
+                </div>
+
+                <!-- Theater Name (Read-only) -->
+                <div class="mb-4">
+                  <label class="form-label d-flex align-items-center mb-2">
+                    <i class="fas fa-building text-primary me-1"></i> Theater
+                  </label>
+                  <input type="text" class="form-control" value="@Model.Theater.Name" readonly />
+                </div>
+
+                <!-- Rows Field -->
+                <div class="form-floating mb-4">
+                  <input type="number" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Screen.Rows" min="1" placeholder="Rows" required />
+                  <label class="form-label">
+                    <i class="fas fa-th text-primary me-1"></i> Rows
+                  </label>
+                  <span asp-validation-for="Screen.Rows" class="text-danger"></span>
+                </div>
+              </div>
+
+              <!-- Right Column -->
+              <div class="col-md-6">
+                <!-- Columns Field -->
+                <div class="form-floating mb-4">
+                  <input type="number" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Screen.Columns" min="1" placeholder="Columns" required />
+                  <label class="form-label">
+                    <i class="fas fa-th-large text-primary me-1"></i> Columns
+                  </label>
+                  <span asp-validation-for="Screen.Columns" class="text-danger"></span>
+                </div>
+
+                <!-- Created At (Read-only for Edit) -->
+                                @if (Model.Screen.Id != 0)
+                                {
+                      <div class="mb-4">
+                        <label class="form-label d-flex align-items-center mb-2">
+                          <i class="fas fa-calendar-alt text-primary me-1"></i> Created At
+                        </label>
+                        <input type="text" class="form-control" value="@Model.Screen.CreatedAt.ToString("yyyy-MM-dd HH:mm")" readonly />
+                      </div>
+                                }
+
+                <!-- IsActive Switch -->
+                <div class="form-check form-switch mt-2">
+                  <input type="checkbox" class="form-check-input" asp-for="Screen.IsActive" id="isActive" />
+                  <label class="form-check-label" for="isActive">
+                    Active Status
+                  </label>
+                  <small class="text-muted d-block mt-1">Only active screens will be available for booking</small>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+              <a asp-controller="Theater" asp-action="Detail" asp-route-id="@Model.Screen.TheaterId" 
+                 class="btn btn-outline-secondary px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-5 py-2">
+                <i class="fas fa-save me-2"></i> Save Screen
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer text-center py-3 bg-light">
+          <div class="small"><i class="fas fa-info-circle text-primary me-1"></i> All fields marked with an asterisk (*) are required</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    @{
+                    <partial name="_ValidationScriptsPartial" />
+    }
+}

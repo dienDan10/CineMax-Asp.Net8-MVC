@@ -1,33 +1,69 @@
 ﻿
-<div class="container-fluid">
-    <div class="row pt-4 align-items-center">
+<div class="container-fluid py-4">
+  <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+    <div class="card-header bg-primary p-4 border-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="text-white mb-0 fw-light">
+          <i class="fas fa-film me-2"></i> Movie Collection
+        </h2>
+        <a asp-area="Admin" asp-controller="Movies" asp-action="Upsert" class="btn btn-light px-4 py-2 rounded-pill shadow-sm">
+          <i class="fas fa-plus me-2"></i> Add New Movie
+        </a>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- Search & Filters Bar -->
+      <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <h2 class="text-primary"><i class="fa-solid fa-map-location-dot"></i> Movie List</h2>
+          <div class="input-group">
+            <span class="input-group-text bg-primary text-white border-0">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" id="movieSearch" class="form-control border-0 border-bottom rounded-0" placeholder="Search movies..." />
+          </div>
         </div>
-        <div class="col-md-6 text-end">
-            <a asp-area="Admin" asp-controller="Movies" asp-action="Upsert" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-plus"></i> Add Movie
-            </a>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="filterAll">All</button>
+            <button type="button" class="btn btn-outline-primary" id="filterActive">Active</button>
+            <button type="button" class="btn btn-outline-primary" id="filterInactive">Inactive</button>
+          </div>
         </div>
+      </div>
+
+      <!-- Movie DataTable -->
+      <div class="table-responsive">
+        <table id="movieTable" class="table table-hover align-middle">
+          <thead>
+            <tr class="bg-light text-dark">
+              <th class="px-4 py-3">Movie</th>
+              <th class="px-4 py-3">Genre</th>
+              <th class="px-4 py-3">Release Date</th>
+              <th class="px-4 py-3 text-center">Status</th>
+              <th class="px-4 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- DataTables will populate this -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card mt-3 shadow border-0">
-        <div class="card-body">
-            <table id="movieTable" class="table table-hover table-striped align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Movie</th>
-                        <th>Genre</th>
-                        <th>Director</th>
-                        <th>Cast</th>
-                        <th>Release Date</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-
-            </table>
+    <div class="card-footer py-3 bg-light">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="small text-muted">
+          <i class="fas fa-info-circle me-1"></i> Showing <span id="totalMovies">0</span> movies
         </div>
+        <div>
+          <button id="refreshTable" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-sync-alt me-1"></i> Refresh
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 @section Scripts {

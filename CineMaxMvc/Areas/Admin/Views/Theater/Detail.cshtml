@@ -1,0 +1,115 @@
+﻿@model TheaterDetailVM
+@{
+    var theater = Model.Theater;
+    var screens = Model.Screens;
+}
+
+<div class="container py-4">
+  <div class="row">
+    <!-- Theater Details -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+        <div class="card-header bg-primary p-4 border-0">
+          <h2 class="text-white text-center mb-0 fw-light">
+            <i class="fas fa-theater-masks me-2"></i> @theater.Name
+          </h2>
+        </div>
+
+        <div class="card-body p-4">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <i class="fas fa-map-marker-alt text-primary me-2"></i> <strong>Address:</strong> @theater.Address
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-phone text-primary me-2"></i> <strong>Phone:</strong> @theater.Phone
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-envelope text-primary me-2"></i> <strong>Email:</strong> @theater.Email
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-clock text-primary me-2"></i> <strong>Opening Time:</strong> @(theater.OpeningTime?.ToString("hh\\:mm tt") ?? "N/A")
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-clock text-primary me-2"></i> <strong>Closing Time:</strong> @(theater.ClosingTime?.ToString("hh\\:mm tt") ?? "N/A")
+            </li>
+            <li class="list-group-item">
+              <i class="fas fa-toggle-on text-primary me-2"></i> <strong>Status:</strong>
+              <span class="badge @(theater.IsActive ? "bg-success" : "bg-danger")">
+                @(theater.IsActive ? "Active" : "Inactive")
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen List -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-lg rounded-3">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <h3 class="fw-light mb-0">
+            <i class="fas fa-tv me-2"></i> Screens
+          </h3>
+          <a asp-controller="Screen" asp-action="Upsert" asp-route-theaterId="@theater.Id"
+             class="btn btn-sm btn-success">
+            <i class="fas fa-plus-circle me-1"></i> Add Screen
+          </a>
+        </div>
+
+        <div class="card-body p-4">
+          @if (screens != null && screens.Any())
+          {
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Seats</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var screen in screens)
+                {
+                  <tr>
+                    <td>@screen.Id</td>
+                    <td>@screen.Name</td>
+                    <td>@(screen.Rows * screen.Columns) Seats</td>
+                    <td>
+                      <span class="badge @(screen.IsActive ? "bg-success" : "bg-danger")">
+                        @(screen.IsActive ? "Active" : "Inactive")
+                      </span>
+                    </td>
+                    <td>
+                      <a asp-controller="Screen" asp-action="Upsert" asp-route-id="@screen.Id"
+                         class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button class="btn btn-sm @(screen.IsActive ? "btn-danger" : "btn-success")"
+                                      onclick="toggleScreenStatus(@screen.Id)">
+                        <i class="fas @(screen.IsActive ? "fa-times-circle" : "fa-check-circle")"></i>
+                        <span id="screenBtnText-@screen.Id">@(screen.IsActive ? "Disable" : "Enable")</span>
+                     </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          else
+          {
+            <div class="text-center text-muted">
+              <i class="fas fa-tv fa-2x"></i>
+              <p class="mt-2">No screens available.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/theaterDetail.js"></script>
+}

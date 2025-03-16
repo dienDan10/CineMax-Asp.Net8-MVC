@@ -92,6 +92,14 @@ namespace CineMaxMvc.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public IActionResult Detail(int? id)
+        {
+            var movie = _unitOfWork.Movie.GetOne(m => m.Id == id);
+            if (movie == null) return NotFound();
+            return View(movie);
+        }
+
         #region API CALLS
 
         [HttpGet]

@@ -10,5 +10,10 @@ namespace DataAccess.Repository
         {
 
         }
+
+        public int CountTotal()
+        {
+            return _context.Theaters.Count();
+        }
     }
 }

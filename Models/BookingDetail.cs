@@ -14,10 +14,7 @@ namespace Models
         [ForeignKey("BookingId")]
         public Booking Booking { get; set; }
 
-        public int SeatId { get; set; }
-        [ValidateNever]
-        [ForeignKey("SeatId")]
-        public Seat Seat { get; set; }
+        public string SeatName { get; set; }
 
         [Range(0, double.MaxValue, ErrorMessage = "Ticket price must be a positive value.")]
         public double TicketPrice { get; set; }

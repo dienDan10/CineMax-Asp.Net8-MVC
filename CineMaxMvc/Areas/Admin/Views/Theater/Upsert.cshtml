@@ -1,0 +1,134 @@
+﻿@model TheaterVM
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+        <div class="card-header bg-primary p-4 border-0">
+          <h2 class="text-white text-center mb-0 fw-light">
+            <i class="fas fa-building me-2"></i>@(Model.Theater?.Id == 0 ? "Add New Theater" : "Edit Theater")
+          </h2>
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+          <form method="post" asp-action="Upsert">
+            <input type="hidden" asp-for="Theater.Id" />
+
+            <div class="row">
+              <!-- Left Column -->
+              <div class="col-md-6">
+                <!-- Name Field -->
+                <div class="form-floating mb-4">
+                  <input type="text" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Theater.Name" placeholder="Theater Name" required />
+                  <label class="form-label">
+                    <i class="fas fa-building text-primary me-1"></i> Name
+                  </label>
+                  <span asp-validation-for="Theater.Name" class="text-danger"></span>
+                </div>
+
+                <!-- Province Field -->
+                <div class="mb-4">
+                  <label class="form-label d-flex align-items-center mb-2">
+                    <i class="fas fa-map-marker-alt text-primary me-1"></i> Province
+                  </label>
+                  <select asp-for="Theater.ProvinceId" asp-items="Model.Provinces" 
+                          class="form-select" required>
+                    <option disabled selected>--Select Province--</option>
+                  </select>
+                  <span asp-validation-for="Theater.ProvinceId" class="text-danger"></span>
+                </div>
+
+                <!-- Address Field -->
+                <div class="mb-4">
+                  <label class="form-label d-flex align-items-center mb-2">
+                    <i class="fas fa-map text-primary me-1"></i> Address
+                  </label>
+                  <textarea class="form-control" asp-for="Theater.Address" placeholder="Full Address" 
+                            rows="3" required></textarea>
+                  <span asp-validation-for="Theater.Address" class="text-danger"></span>
+                </div>
+              </div>
+
+              <!-- Right Column -->
+              <div class="col-md-6">
+                <!-- Phone Field -->
+                <div class="form-floating mb-4">
+                  <input type="tel" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Theater.Phone" placeholder="Phone Number" required />
+                  <label class="form-label">
+                    <i class="fas fa-phone text-primary me-1"></i> Phone
+                  </label>
+                  <span asp-validation-for="Theater.Phone" class="text-danger"></span>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-floating mb-4">
+                  <input type="email" class="form-control border-0 border-bottom rounded-0" 
+                         asp-for="Theater.Email" placeholder="Email Address" required />
+                  <label class="form-label">
+                    <i class="fas fa-envelope text-primary me-1"></i> Email
+                  </label>
+                  <span asp-validation-for="Theater.Email" class="text-danger"></span>
+                </div>
+
+                <!-- Opening & Closing Time -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-floating mb-4">
+                      <input type="time" class="form-control border-0 border-bottom rounded-0" 
+                             asp-for="Theater.OpeningTime" />
+                      <label class="form-label">
+                        <i class="fas fa-door-open text-primary me-1"></i> Opening Time
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-floating mb-4">
+                      <input type="time" class="form-control border-0 border-bottom rounded-0" 
+                             asp-for="Theater.ClosingTime" />
+                      <label class="form-label">
+                        <i class="fas fa-door-closed text-primary me-1"></i> Closing Time
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- IsActive Switch (Full Width) -->
+            <div class="form-check form-switch mb-4">
+              <input type="checkbox" class="form-check-input" asp-for="Theater.IsActive" id="isActive" />
+              <label class="form-check-label" for="isActive">
+                 Active Status
+              </label>
+              <small class="text-muted d-block mt-1">Active theaters will be displayed to customers</small>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+              <a asp-controller="Theater" asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary px-5 py-2">
+                <i class="fas fa-save me-2"></i> Save Theater
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer text-center py-3 bg-light">
+          <div class="small"><i class="fas fa-info-circle text-primary me-1"></i> All fields marked with an asterisk (*) are required</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    @{
+            <partial name="_ValidationScriptsPartial" />
+    }
+}

@@ -1,0 +1,132 @@
+﻿@model Movie
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+        <!-- Movie Header with Backdrop -->
+        <div class="bg-dark position-relative" style="height: 250px; background-size: cover; background-position: center; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('@Model.PosterUrl')">
+          <div class="position-absolute bottom-0 start-0 p-4 text-white">
+            <h1 class="display-4 fw-bold">@Model.Title</h1>
+            <div class="d-flex align-items-center text-white-50 mb-3">
+              <span class="me-3"><i class="fas fa-calendar-alt me-1"></i> @Model.ReleaseDate.ToString("MMMM dd, yyyy")</span>
+              <span class="me-3"><i class="fas fa-film me-1"></i> @Model.Genre</span>
+                            @if (Model.IsActive)
+                            {
+                    <span class="badge bg-success"><i class="fas fa-check me-1"></i> Now Showing</span>
+                            }
+                            else
+                            {
+                    <span class="badge bg-secondary"><i class="fas fa-archive me-1"></i> Archived</span>
+                            }
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-0">
+          <div class="row g-0">
+            <!-- Poster Column -->
+            <div class="col-md-4 col-lg-3 border-end">
+              <div class="p-3">
+                <img src="@Model.PosterUrl" alt="@Model.Title Poster" class="img-fluid rounded shadow-sm" />
+              </div>
+            </div>
+
+            <!-- Details Column -->
+            <div class="col-md-8 col-lg-9">
+              <div class="p-4">
+                <!-- Movie Details -->
+                <div class="row mb-4">
+                  <div class="col-lg-8">
+                    <h2 class="border-bottom pb-2 mb-3">About the Movie</h2>
+                    <p class="lead">@Html.Raw(Model.Description)</p>
+                  </div>
+
+                  <div class="col-lg-4">
+                    <div class="card bg-light border-0 rounded-3 mb-3">
+                      <div class="card-body">
+                        <h5 class="card-title border-bottom pb-2 mb-3">
+                          <i class="fas fa-info-circle me-2 text-primary"></i>Movie Info
+                        </h5>
+
+                        <div class="mb-2">
+                          <small class="text-muted d-block">Director</small>
+                          <p class="mb-0 fw-bold">@Model.Director</p>
+                        </div>
+
+                        <div class="mb-2">
+                          <small class="text-muted d-block">Added on</small>
+                          <p class="mb-0">@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        </div>
+
+                        <div>
+                          <small class="text-muted d-block">Last Updated</small>
+                          <p class="mb-0">@Model.LastUpdatedAt.ToString("MMM dd, yyyy")</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Trailer Section -->
+                                @if (!string.IsNullOrEmpty(Model.TrailerUrl))
+                                {
+                      <h3 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-video me-2 text-primary"></i>Trailer
+                      </h3>
+                      <div class="ratio ratio-16x9 mb-4">
+                                        @{
+                                            var videoId = string.Empty;
+                                            // Extract YouTube video ID from URL
+                                            if (Model.TrailerUrl.Contains("youtube.com/watch?v="))
+                                            {
+                                                videoId = Model.TrailerUrl.Split("v=")[1];
+                                            }
+                                            else if (Model.TrailerUrl.Contains("youtu.be/"))
+                                            {
+                                                videoId = Model.TrailerUrl.Split("youtu.be/")[1];
+                                            }
+
+                                            // Remove any additional URL parameters
+                                            if (videoId.Contains("&"))
+                                            {
+                                                videoId = videoId.Split("&")[0];
+                                            }
+                                        }
+                        <iframe class="rounded shadow-sm" 
+                                src="https://www.youtube.com/embed/@videoId" 
+                                title="@Model.Title Trailer" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen></iframe>
+                      </div>
+                                }
+
+                <!-- Cast Section -->
+                <h3 class="border-bottom pb-2 mb-3">
+                  <i class="fas fa-users me-2 text-primary"></i>Cast
+                </h3>
+                <p>@Html.Raw(Model.Cast?.Replace(",", "<br>"))</p>
+
+                <!-- Admin Actions -->
+                <div class="mt-5 d-flex justify-content-between">
+                  <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Movies
+                  </a>
+                  <div>
+                    <a asp-controller="Movies" asp-action="Upsert" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+                      <i class="fas fa-edit me-2"></i> Edit Movie
+                    </a>
+                    <a asp-controller="Movies" asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                      <i class="fas fa-trash-alt me-2"></i> Delete
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
