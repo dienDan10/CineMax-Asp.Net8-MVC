@@ -4,39 +4,89 @@
     var screens = Model.Screens;
 }
 
-<div class="container py-4">
-  <div class="row">
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- Theater Banner -->
+    <div class="col-12 mb-2">
+      <div class="card border-0 shadow-lg rounded-4 bg-gradient overflow-hidden">
+        <div class="card-body p-5 text-center">
+          <h1 class="display-4 fw-bold text-primary mb-0">
+            <i class="fas fa-theater-masks me-3"></i>@theater.Name
+          </h1>
+          <p class="lead text-muted mt-2">Your premier entertainment destination</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Theater Details -->
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100">
         <div class="card-header bg-primary p-4 border-0">
-          <h2 class="text-white text-center mb-0 fw-light">
-            <i class="fas fa-theater-masks me-2"></i> @theater.Name
+          <h2 class="text-white mb-0 fw-light">
+            <i class="fas fa-info-circle me-2"></i> Theater Information
           </h2>
         </div>
 
         <div class="card-body p-4">
           <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <i class="fas fa-map-marker-alt text-primary me-2"></i> <strong>Address:</strong> @theater.Address
+            <li class="list-group-item border-0 px-0 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-3 me-3">
+                  <i class="fas fa-map-marker-alt text-primary"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Address</small>
+                  <p class="mb-0 fw-medium">@theater.Address</p>
+                </div>
+              </div>
             </li>
-            <li class="list-group-item">
-              <i class="fas fa-phone text-primary me-2"></i> <strong>Phone:</strong> @theater.Phone
+            <li class="list-group-item border-0 px-0 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-3 me-3">
+                  <i class="fas fa-phone text-primary"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Phone</small>
+                  <p class="mb-0 fw-medium">@theater.Phone</p>
+                </div>
+              </div>
             </li>
-            <li class="list-group-item">
-              <i class="fas fa-envelope text-primary me-2"></i> <strong>Email:</strong> @theater.Email
+            <li class="list-group-item border-0 px-0 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-3 me-3">
+                  <i class="fas fa-envelope text-primary"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Email</small>
+                  <p class="mb-0 fw-medium">@theater.Email</p>
+                </div>
+              </div>
             </li>
-            <li class="list-group-item">
-              <i class="fas fa-clock text-primary me-2"></i> <strong>Opening Time:</strong> @(theater.OpeningTime?.ToString("hh\\:mm tt") ?? "N/A")
+            <li class="list-group-item border-0 px-0 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-3 me-3">
+                  <i class="fas fa-clock text-primary"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Hours</small>
+                  <p class="mb-0 fw-medium">@(theater.OpeningTime?.ToString("hh\\:mm tt") ?? "N/A") - @(theater.ClosingTime?.ToString("hh\\:mm tt") ?? "N/A")</p>
+                </div>
+              </div>
             </li>
-            <li class="list-group-item">
-              <i class="fas fa-clock text-primary me-2"></i> <strong>Closing Time:</strong> @(theater.ClosingTime?.ToString("hh\\:mm tt") ?? "N/A")
-            </li>
-            <li class="list-group-item">
-              <i class="fas fa-toggle-on text-primary me-2"></i> <strong>Status:</strong>
-              <span class="badge @(theater.IsActive ? "bg-success" : "bg-danger")">
-                @(theater.IsActive ? "Active" : "Inactive")
-              </span>
+            <li class="list-group-item border-0 px-0 py-3">
+              <div class="d-flex align-items-center">
+                <div class="bg-light rounded-circle p-3 me-3">
+                  <i class="fas fa-toggle-on text-primary"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Status</small>
+                  <p class="mb-0">
+                    <span class="badge rounded-pill @(theater.IsActive ? "bg-success" : "bg-danger") px-3 py-2">
+                                            @(theater.IsActive ? "Active" : "Inactive")
+                    </span>
+                  </p>
+                </div>
+              </div>
             </li>
           </ul>
         </div>
@@ -44,66 +94,88 @@
     </div>
 
     <!-- Screen List -->
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-lg rounded-3">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-lg rounded-4 h-100">
+        <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
           <h3 class="fw-light mb-0">
-            <i class="fas fa-tv me-2"></i> Screens
+            <i class="fas fa-tv me-2"></i> Theater Screens
           </h3>
           <a asp-controller="Screen" asp-action="Upsert" asp-route-theaterId="@theater.Id"
-             class="btn btn-sm btn-success">
-            <i class="fas fa-plus-circle me-1"></i> Add Screen
+             class="btn btn-success rounded-pill">
+            <i class="fas fa-plus-circle me-2"></i> Add Screen
           </a>
         </div>
 
         <div class="card-body p-4">
-          @if (screens != null && screens.Any())
-          {
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Seats</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                @foreach (var screen in screens)
-                {
-                  <tr>
-                    <td>@screen.Id</td>
-                    <td>@screen.Name</td>
-                    <td>@(screen.Rows * screen.Columns) Seats</td>
-                    <td>
-                      <span class="badge @(screen.IsActive ? "bg-success" : "bg-danger")">
-                        @(screen.IsActive ? "Active" : "Inactive")
-                      </span>
-                    </td>
-                    <td>
-                      <a asp-controller="Screen" asp-action="Upsert" asp-route-id="@screen.Id"
-                         class="btn btn-sm btn-primary">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                      <button class="btn btn-sm @(screen.IsActive ? "btn-danger" : "btn-success")"
-                                      onclick="toggleScreenStatus(@screen.Id)">
-                        <i class="fas @(screen.IsActive ? "fa-times-circle" : "fa-check-circle")"></i>
-                        <span id="screenBtnText-@screen.Id">@(screen.IsActive ? "Disable" : "Enable")</span>
-                     </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
-          else
-          {
-            <div class="text-center text-muted">
-              <i class="fas fa-tv fa-2x"></i>
-              <p class="mt-2">No screens available.</p>
-            </div>
-          }
+                    @if (screens != null && screens.Any())
+                    {
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="text-center">#</th>
+                        <th>Name</th>
+                        <th>Capacity</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                                    @foreach (var screen in screens)
+                                    {
+                            <tr>
+                              <td class="text-center">@screen.Id</td>
+                              <td>
+                                <span class="fw-medium">@screen.Name</span>
+                              </td>
+                              <td>
+                                <div class="d-flex align-items-center">
+                                  <span class="badge bg-secondary rounded-pill me-2">@(screen.Rows * screen.Columns)</span>
+                                  <small class="text-muted">Seats</small>
+                                </div>
+                              </td>
+                              <td>
+                                <span class="badge rounded-pill @(screen.IsActive ? "bg-success" : "bg-danger") px-3 py-2">
+                                                    @(screen.IsActive ? "Active" : "Inactive")
+                                </span>
+                              </td>
+                              <td>
+                                <div class="d-flex justify-content-end gap-2">
+                                  <a asp-controller="Screen" asp-action="Upsert" asp-route-id="@screen.Id"
+                                     class="btn btn-sm btn-primary rounded-pill">
+                                    <i class="fas fa-edit me-1"></i> Edit
+                                  </a>
+                                  <a asp-controller="Screen" asp-action="EditSeats" asp-route-id="@screen.Id"
+                                     class="btn btn-sm btn-warning rounded-pill">
+                                    <i class="fas fa-chair me-1"></i> Seats
+                                  </a>
+                                  <a asp-controller="ShowTime" asp-action="Create" asp-route-screenId="@screen.Id"
+                                     class="btn btn-sm btn-info rounded-pill">
+                                    <i class="fas fa-clock me-1"></i> ShowTime
+                                  </a>
+                                  <button class="btn btn-sm rounded-pill @(screen.IsActive ? "btn-danger" : "btn-success")"
+                                          onclick="toggleScreenStatus(@screen.Id)">
+                                    <i class="fas @(screen.IsActive ? "fa-times-circle" : "fa-check-circle") me-1"></i>
+                                    <span id="screenBtnText-@screen.Id">@(screen.IsActive ? "Disable" : "Enable")</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                                    }
+                    </tbody>
+                  </table>
+                </div>
+                    }
+                    else
+                    {
+                <div class="text-center p-5">
+                  <div class="bg-light rounded-circle p-4 d-inline-block mb-3">
+                    <i class="fas fa-tv fa-2x text-secondary"></i>
+                  </div>
+                  <h5 class="text-muted">No screens available</h5>
+                  <p class="text-muted">Add a screen to this theater to get started.</p>
+                </div>
+                    }
         </div>
       </div>
     </div>
@@ -111,5 +183,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/theaterDetail.js"></script>
+        <script src="~/js/theaterDetail.js"></script>
 }

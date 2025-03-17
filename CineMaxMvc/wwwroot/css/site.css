@@ -42,3 +42,17 @@ body {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+
+#concessionsTable th, #concessionsTable td {
+    padding: 12px; /* Adjust padding for better spacing */
+    vertical-align: middle; /* Align text properly */
+}
+
+#concessionsTable th {
+    background-color: #f8f9fa; /* Light gray background for header */
+    text-align: center; /* Center header text */
+}
+
+.table-responsive {
+    padding: 15px; /* Add padding around the table */
+}

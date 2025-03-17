@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\movies\" />
+    <Folder Include="wwwroot\images\concessions\" />
   </ItemGroup>
 
 </Project>

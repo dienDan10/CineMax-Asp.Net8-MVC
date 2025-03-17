@@ -1,0 +1,151 @@
+﻿@model Concession
+@{
+    ViewData["Title"] = Model?.Id == 0 ? "Create Concession" : "Edit Concession";
+    var isCreate = Model?.Id == 0;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary p-4 border-0">
+                    <h2 class="text-white mb-0 fw-light">
+                        <i class="fas fa-utensils me-2"></i> @(isCreate ? "Create New Concession" : "Edit Concession")
+                    </h2>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Upsert" method="post" enctype="multipart/form-data" class="needs-validation">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row g-4">
+                            <!-- Left Column -->
+                            <div class="col-md-7">
+                                <div class="mb-4">
+                                    <label asp-for="Name" class="form-label fw-bold">Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-tag text-primary"></i>
+                                        </span>
+                                        <input asp-for="Name" class="form-control" placeholder="Enter concession name" required />
+                                    </div>
+                                    <span asp-validation-for="Name" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Description" class="form-label fw-bold">Description</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-align-left text-primary"></i>
+                                        </span>
+                                        <textarea asp-for="Description" class="form-control" rows="4" 
+                                                  placeholder="Enter concession description"></textarea>
+                                    </div>
+                                    <span asp-validation-for="Description" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Price" class="form-label fw-bold">Price ($)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-dollar-sign text-primary"></i>
+                                        </span>
+                                        <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" 
+                                               placeholder="0.00" required />
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-5">
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Image</label>
+                                    <div class="text-center mb-3">
+                                        <img id="imagePreview" class="img-thumbnail rounded shadow-sm" 
+                                             src="@(string.IsNullOrEmpty(Model?.ImageUrl) ? "/images/no-image.png" : Model.ImageUrl)" 
+                                             style="width: 200px; height: 200px; object-fit: cover;" />
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-image text-primary"></i>
+                                        </span>
+                                        <input type="file" class="form-control" id="imageUpload" name="file" 
+                                               accept="image/*" onchange="previewImage(event)" />
+                                    </div>
+                                    <input type="hidden" asp-for="ImageUrl" />
+                                    <div class="form-text text-muted small">
+                                        Upload a clear image of the concession item. Max size: 2MB.
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold mb-0">Status</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" />
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            <span class="badge rounded-pill px-3 py-2" id="statusBadge">
+                                                @(Model?.IsActive == true ? "Active" : "Inactive")
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" asp-controller="Concession" class="btn btn-outline-secondary rounded-pill px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5">
+                                <i class="fas fa-save me-2"></i> @(isCreate ? "Create" : "Update")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            function previewImage(event) {
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var output = document.getElementById('imagePreview');
+                    output.src = reader.result;
+                };
+                if (event.target.files && event.target.files[0]) {
+                    reader.readAsDataURL(event.target.files[0]);
+                }
+            }
+
+            // Update status badge color based on checkbox
+            $(document).ready(function() {
+                function updateStatusBadge() {
+                    let isActive = $('#IsActive').is(':checked');
+                    let badge = $('#statusBadge');
+
+                    if (isActive) {
+                        badge.removeClass('bg-danger').addClass('bg-success');
+                        badge.text('Active');
+                    } else {
+                        badge.removeClass('bg-success').addClass('bg-danger');
+                        badge.text('Inactive');
+                    }
+                }
+
+                // Initial state
+                updateStatusBadge();
+
+                // On change
+                $('#IsActive').change(function() {
+                    updateStatusBadge();
+                });
+            });
+        </script>
+        <partial name="_ValidationScriptsPartial" />
+}

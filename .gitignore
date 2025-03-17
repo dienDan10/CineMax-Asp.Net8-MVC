@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 CineMaxMvc/.appsettings.json
+CineMaxMvc/appsettings.json
