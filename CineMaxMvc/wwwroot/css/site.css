@@ -56,3 +56,267 @@ body {
 .table-responsive {
     padding: 15px; /* Add padding around the table */
 }
+
+.screen-container {
+    text-align: center;
+    perspective: 100px;
+}
+
+.screen-display {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    color: #333;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: inline-block;
+    min-width: 200px;
+}
+
+.screen-trapezoid {
+    border-bottom: 20px solid rgba(200, 200, 200, 0.3);
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    height: 0;
+    width: 80%;
+    margin: 0 auto;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+}
+
+.seating-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.row-container {
+    display: flex;
+    justify-content: center; /* Centers the entire row */
+    align-items: center;
+    width: 100%;
+}
+
+.row-label {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    font-weight: bold;
+    margin-right: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.seat-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.seat {
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .seat::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: rgba(0,0,0,0.1);
+    }
+
+    .seat:hover {
+        transform: translateY(-3px);
+    }
+
+    .seat.active {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .seat.inactive {
+        background-color: #9e9e9e;
+        color: #e0e0e0;
+    }
+
+    .seat.selected {
+        background-color: #2196f3;
+        color: white;
+        animation: pulse 1.5s infinite;
+    }
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+    }
+}
+
+.seat-legend {
+    text-align: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.seat-sample {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+    .seat-sample.active {
+        background-color: #4caf50;
+    }
+
+    .seat-sample.inactive {
+        background-color: #9e9e9e;
+    }
+
+    .seat-sample.selected {
+        background-color: #2196f3;
+    }
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.theater-list-item, .cinema-list-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #eee;
+    padding: 12px 15px;
+}
+
+    .theater-list-item:hover, .cinema-list-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .theater-list-item.active, .cinema-list-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+.date-selector {
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.date-item {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    transition: all 0.2s;
+}
+
+    .date-item.active {
+        background-color: #cfe2ff;
+        border-color: #0d6efd;
+    }
+
+    .date-item:hover {
+        background-color: #e9ecef;
+    }
+
+.time-button {
+    min-width: 80px;
+    margin: 6px;
+    font-size: 14px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .time-button:hover {
+        background-color: #f8f9fa;
+        border-color: #0d6efd;
+    }
+
+.price-tag {
+    font-size: 10px;
+    display: block;
+    color: #6c757d;
+}
+
+.movie-poster {
+    max-width: 100px;
+    border-radius: 8px;
+}
+
+.movie-title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.movie-details {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.main-heading {
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.badge-count {
+    background-color: #0d6efd;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.notification-btn {
+    background-color: #ffc107;
+    border-radius: 4px;
+    padding: 10px 15px;
+    color: #333;
+    font-weight: 500;
+    margin: 15px 0;
+}
+
+.theater-location {
+    font-size: 13px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+

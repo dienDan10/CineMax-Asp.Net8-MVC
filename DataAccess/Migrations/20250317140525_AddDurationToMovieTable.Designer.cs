@@ -4,6 +4,7 @@ using DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250317140525_AddDurationToMovieTable")]
+    partial class AddDurationToMovieTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -271,7 +274,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("Models.BookingDetail", b =>
@@ -302,7 +305,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingDetails", (string)null);
+                    b.ToTable("BookingDetails");
                 });
 
             modelBuilder.Entity("Models.Concession", b =>
@@ -338,7 +341,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Concessions", (string)null);
+                    b.ToTable("Concessions");
                 });
 
             modelBuilder.Entity("Models.ConcessionOrder", b =>
@@ -377,7 +380,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ConcessionOrders", (string)null);
+                    b.ToTable("ConcessionOrders");
                 });
 
             modelBuilder.Entity("Models.ConcessionOrderDetail", b =>
@@ -412,7 +415,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ConcessionOrderId");
 
-                    b.ToTable("ConcessionOrderDetails", (string)null);
+                    b.ToTable("ConcessionOrderDetails");
                 });
 
             modelBuilder.Entity("Models.Movie", b =>
@@ -466,7 +469,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies", (string)null);
+                    b.ToTable("Movies");
                 });
 
             modelBuilder.Entity("Models.Payment", b =>
@@ -510,7 +513,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ConcessionOrderId");
 
-                    b.ToTable("payments", (string)null);
+                    b.ToTable("payments");
                 });
 
             modelBuilder.Entity("Models.Province", b =>
@@ -527,7 +530,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Provinces", (string)null);
+                    b.ToTable("Provinces");
 
                     b.HasData(
                         new
@@ -576,7 +579,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("TheaterId");
 
-                    b.ToTable("Screens", (string)null);
+                    b.ToTable("Screens");
                 });
 
             modelBuilder.Entity("Models.Seat", b =>
@@ -610,7 +613,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ScreenId");
 
-                    b.ToTable("Seats", (string)null);
+                    b.ToTable("Seats");
                 });
 
             modelBuilder.Entity("Models.ShowTime", b =>
@@ -651,7 +654,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ScreenId");
 
-                    b.ToTable("ShowTimes", (string)null);
+                    b.ToTable("ShowTimes");
                 });
 
             modelBuilder.Entity("Models.Theater", b =>
@@ -700,7 +703,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("ProvinceId");
 
-                    b.ToTable("Theaters", (string)null);
+                    b.ToTable("Theaters");
                 });
 
             modelBuilder.Entity("Models.ApplicationUser", b =>

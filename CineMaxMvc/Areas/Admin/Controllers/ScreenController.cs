@@ -116,6 +116,59 @@ namespace CineMaxMvc.Areas.Admin.Controllers
             _unitOfWork.Save();
         }
 
+
+        [HttpGet]
+        public IActionResult Detail(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var screen = _unitOfWork.Screen.GetOne(s => s.Id == id, "Theater");
+
+            if (screen == null) return NotFound();
+
+            var viewModel = new ScreenDetailVM
+            {
+                Screen = screen,
+                Seats = _unitOfWork.Seat.GetAll(s => s.ScreenId == id).ToList()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public IActionResult ShowTime(int? screenId)
+        {
+            ShowTimeVM showTimeVM = new ShowTimeVM();
+
+            var screen = _unitOfWork.Screen.GetOne(s => s.Id == screenId, "Theater");
+
+            if (screen == null) return NotFound();
+
+            showTimeVM.Screen = screen;
+
+            return View(showTimeVM);
+        }
+
+        #region API CALLS
+        [HttpPost]
+        public IActionResult ToggleSeatStatus([FromBody] int seatId)
+        {
+            var seat = _unitOfWork.Seat.GetOne(s => s.Id == seatId);
+            if (seat == null)
+            {
+                return Json(new { success = false, message = "Seat not found!" });
+            }
+
+            // Toggle active status
+            seat.IsActive = !seat.IsActive;
+            seat.LastUpdatedAt = DateTime.Now;
+
+            _unitOfWork.Seat.Update(seat);
+            _unitOfWork.Save();
+
+            return Json(new { success = true, message = "Seat status updated!", isActive = seat.IsActive });
+        }
+
         [HttpPost]
         public IActionResult ToggleStatus([FromBody] int id)
         {
@@ -134,6 +187,7 @@ namespace CineMaxMvc.Areas.Admin.Controllers
 
             return Json(new { success = true, message = "Screen status updated!", isActive = screen.IsActive });
         }
+        #endregion
 
     }
 }

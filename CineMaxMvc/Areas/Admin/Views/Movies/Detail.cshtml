@@ -4,21 +4,22 @@
   <div class="row justify-content-center">
     <div class="col-lg-10">
       <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
-        <!-- Movie Header with Backdrop -->
+        <<!-- Movie Header with Backdrop -->
         <div class="bg-dark position-relative" style="height: 250px; background-size: cover; background-position: center; background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('@Model.PosterUrl')">
           <div class="position-absolute bottom-0 start-0 p-4 text-white">
             <h1 class="display-4 fw-bold">@Model.Title</h1>
             <div class="d-flex align-items-center text-white-50 mb-3">
               <span class="me-3"><i class="fas fa-calendar-alt me-1"></i> @Model.ReleaseDate.ToString("MMMM dd, yyyy")</span>
               <span class="me-3"><i class="fas fa-film me-1"></i> @Model.Genre</span>
-                            @if (Model.IsActive)
-                            {
+              <span class="me-3"><i class="fas fa-clock me-1"></i> @Model.Duration min</span>
+                                    @if (Model.IsActive)
+                                    {
                     <span class="badge bg-success"><i class="fas fa-check me-1"></i> Now Showing</span>
-                            }
-                            else
-                            {
+                                    }
+                                    else
+                                    {
                     <span class="badge bg-secondary"><i class="fas fa-archive me-1"></i> Archived</span>
-                            }
+                                    }
             </div>
           </div>
         </div>

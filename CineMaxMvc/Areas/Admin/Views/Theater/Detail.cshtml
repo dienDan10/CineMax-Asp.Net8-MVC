@@ -145,11 +145,11 @@
                                      class="btn btn-sm btn-primary rounded-pill">
                                     <i class="fas fa-edit me-1"></i> Edit
                                   </a>
-                                  <a asp-controller="Screen" asp-action="EditSeats" asp-route-id="@screen.Id"
+                                  <a asp-controller="Screen" asp-action="Detail" asp-route-id="@screen.Id"
                                      class="btn btn-sm btn-warning rounded-pill">
                                     <i class="fas fa-chair me-1"></i> Seats
                                   </a>
-                                  <a asp-controller="ShowTime" asp-action="Create" asp-route-screenId="@screen.Id"
+                                  <a asp-controller="Screen" asp-action="ShowTime" asp-route-screenId="@screen.Id"
                                      class="btn btn-sm btn-info rounded-pill">
                                     <i class="fas fa-clock me-1"></i> ShowTime
                                   </a>

@@ -1,0 +1,252 @@
+﻿@model ShowTimeVM
+
+@{
+    var screen = Model.Screen;
+    var theater = screen.Theater;
+}
+
+<div class="container py-4">
+    <!-- Screen Info Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Theater" asp-action="Index">Theaters</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Theater" asp-action="Detail" asp-route-id="@theater.Id">Theater Details</a></li>
+                    <li class="breadcrumb-item active">Screen Showtimes</li>
+                </ol>
+            </nav>
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Manage Showtimes - @screen.Name</h4>
+                    <span class="badge bg-info">Capacity: @(screen.Rows * screen.Columns) seats</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Showtime Filter Controls -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="input-group mb-3 mb-md-0">
+                                <span class="input-group-text">Date Range</span>
+                                <input type="date" id="startDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                <span class="input-group-text">to</span>
+                                <input type="date" id="endDate" class="form-control" value="@DateTime.Now.AddDays(14).ToString("yyyy-MM-dd")">
+                            </div>
+                        </div>
+                        @* <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">Filter</span>
+                                <select id="showtimeFilter" class="form-select">
+                                    <option value="upcoming">Upcoming Showtimes</option>
+                                    <option value="today">Today's Showtimes</option>
+                                    <option value="past">Past Showtimes</option>
+                                    <option value="all">All Showtimes</option>
+                                </select>
+                            </div>
+                        </div> *@
+                        <div class="col-md-4 text-end">
+                            <button id="applyFilter" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i> Apply Filter
+                            </button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShowtimeModal">
+                                <i class="fas fa-plus me-1"></i> Add Showtimes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-auto">
+                                <img src="https://cdn.moveek.com/storage/media/cache/mini/67b407ce027c7276418928.jpg" alt="Quỷ Nhập Tràng" class="movie-poster">
+                            </div>
+                            <div class="col">
+                                <h5 class="movie-title">Quỷ Nhập Tràng</h5>
+                                <p class="movie-details">The Corpse • 118' • 2h1' <span class="badge bg-secondary">Trailer</span></p>
+                                <p class="movie-details">2D Phụ Đề Anh</p>
+
+                                <div class="d-flex flex-wrap mt-3">
+                                    <div class="time-button">
+                                        09:15
+                                    </div>
+                                    <div class="time-button">
+                                        10:00
+                                    </div>
+                                    <div class="time-button">
+                                        10:45
+                                    </div>
+                                    <div class="time-button">
+                                        11:30
+                                    </div>
+                                    <div class="time-button">
+                                        12:15
+                                    </div>
+                                    <div class="time-button">
+                                        13:00
+                                    </div>
+                                    <div class="time-button">
+                                        13:45
+                                    </div>
+                                    <div class="time-button">
+                                        18:15
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                    <div class="time-button">
+                                        19:00
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                    <div class="time-button">
+                                        19:45
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                    <div class="time-button">
+                                        20:30
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                    <div class="time-button">
+                                        21:15
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                    <div class="time-button">
+                                        22:00
+                                        <span class="price-tag">45K</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Showtime Modal -->
+<div class="modal fade" id="addShowtimeModal" tabindex="-1" aria-labelledby="addShowtimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="addShowtimeModalLabel">Add New Showtimes</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddShowtimes" asp-controller="Screen" method="post">
+                <div class="modal-body">
+                    <input type="hidden" />
+
+                    <!-- Movie Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Movie</label>
+                        <select class="form-select" id="movieSelect">
+                            <option value="">-- Select Movie --</option>
+                        </select>
+                        <span  class="text-danger"></span>
+                    </div>
+
+                    <!-- Movie Details Preview -->
+                    <div id="movieDetails" class="mb-3" style="display: none;">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <img id="moviePoster" src="" alt="Movie Poster" class="img-fluid rounded">
+                                    </div>
+                                    <div class="col-md-9">
+                                        <h5 id="movieTitle" class="mb-2"></h5>
+                                        <div class="mb-2">
+                                            <span id="movieGenre" class="badge bg-secondary me-2"></span>
+                                            <span id="movieDuration" class="text-muted"><i class="fas fa-clock me-1"></i></span>
+                                        </div>
+                                        <p id="movieDescription" class="text-muted small"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Date(s)</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" id="showDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" id="addDateBtn" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i> Add Date
+                                </button>
+                            </div>
+                        </div>
+                        <div id="selectedDates" class="mt-2">
+                            <!-- Selected dates will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Time Selection -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Time(s)</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                    <input type="time" id="showTime" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" id="addTimeBtn" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus me-1"></i> Add Time
+                                </button>
+                            </div>
+                        </div>
+                        <div id="selectedTimes" class="mt-2">
+                            <!-- Selected times will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Preview of scheduled showtimes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Scheduled Showtimes</label>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-1"></i> The system will create showtimes for each combination of selected dates and times.
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduledShowtimes">
+                                    <!-- Scheduled showtimes will appear here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="submitShowtimes" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Save Showtimes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
