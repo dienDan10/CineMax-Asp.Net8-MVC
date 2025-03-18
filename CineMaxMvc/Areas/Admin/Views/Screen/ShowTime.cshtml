@@ -3,6 +3,7 @@
 @{
     var screen = Model.Screen;
     var theater = screen.Theater;
+    var Movies = Model.Movies;
 }
 
 <div class="container py-4">
@@ -26,113 +27,148 @@
     </div>
 
     <!-- Showtime Filter Controls -->
+    <!-- Showtime Filter Controls -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="input-group mb-3 mb-md-0">
-                                <span class="input-group-text">Date Range</span>
-                                <input type="date" id="startDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")">
-                                <span class="input-group-text">to</span>
-                                <input type="date" id="endDate" class="form-control" value="@DateTime.Now.AddDays(14).ToString("yyyy-MM-dd")">
+                    <form asp-area="Admin" asp-controller="Screen" asp-action="ShowTime" method="GET">
+                        <input type="hidden" name="screenId" value="@screen.Id" />
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group mb-3 mb-md-0">
+                                    <span class="input-group-text">Date Range</span>
+                                    <input type="date" id="startDate" name="startDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" id="endDate" name="endDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button type="submit" id="applyFilter" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i> Apply Filter
+                                </button>
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShowtimeModal">
+                                    <i class="fas fa-plus me-1"></i> Add Showtimes
+                                </button>
                             </div>
                         </div>
-                        @* <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text">Filter</span>
-                                <select id="showtimeFilter" class="form-select">
-                                    <option value="upcoming">Upcoming Showtimes</option>
-                                    <option value="today">Today's Showtimes</option>
-                                    <option value="past">Past Showtimes</option>
-                                    <option value="all">All Showtimes</option>
-                                </select>
-                            </div>
-                        </div> *@
-                        <div class="col-md-4 text-end">
-                            <button id="applyFilter" class="btn btn-primary">
-                                <i class="fas fa-filter me-1"></i> Apply Filter
-                            </button>
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShowtimeModal">
-                                <i class="fas fa-plus me-1"></i> Add Showtimes
-                            </button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Calendar View -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-auto">
-                                <img src="https://cdn.moveek.com/storage/media/cache/mini/67b407ce027c7276418928.jpg" alt="Quỷ Nhập Tràng" class="movie-poster">
-                            </div>
-                            <div class="col">
-                                <h5 class="movie-title">Quỷ Nhập Tràng</h5>
-                                <p class="movie-details">The Corpse • 118' • 2h1' <span class="badge bg-secondary">Trailer</span></p>
-                                <p class="movie-details">2D Phụ Đề Anh</p>
+    <!-- ShowTime View -->
+    <!-- Showtimes by Date -->
+    @{
+        // Group showtimes by date
+        var showtimesByDate = Model.ShowTimes.GroupBy(s => s.Date.Date).OrderBy(g => g.Key);
+    }
 
-                                <div class="d-flex flex-wrap mt-3">
-                                    <div class="time-button">
-                                        09:15
-                                    </div>
-                                    <div class="time-button">
-                                        10:00
-                                    </div>
-                                    <div class="time-button">
-                                        10:45
-                                    </div>
-                                    <div class="time-button">
-                                        11:30
-                                    </div>
-                                    <div class="time-button">
-                                        12:15
-                                    </div>
-                                    <div class="time-button">
-                                        13:00
-                                    </div>
-                                    <div class="time-button">
-                                        13:45
-                                    </div>
-                                    <div class="time-button">
-                                        18:15
-                                        <span class="price-tag">45K</span>
-                                    </div>
-                                    <div class="time-button">
-                                        19:00
-                                        <span class="price-tag">45K</span>
-                                    </div>
-                                    <div class="time-button">
-                                        19:45
-                                        <span class="price-tag">45K</span>
-                                    </div>
-                                    <div class="time-button">
-                                        20:30
-                                        <span class="price-tag">45K</span>
-                                    </div>
-                                    <div class="time-button">
-                                        21:15
-                                        <span class="price-tag">45K</span>
-                                    </div>
-                                    <div class="time-button">
-                                        22:00
-                                        <span class="price-tag">45K</span>
+    @foreach (var dateGroup in showtimesByDate)
+    {
+        var date = dateGroup.Key;
+        var isToday = date.Date == DateTime.Today;
+
+        <!-- Day Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-day me-2"></i>
+                            @date.ToString("dddd, MMMM d, yyyy")
+                            @if (isToday)
+                            {
+                                    <span class="badge bg-primary ms-2">Today</span>
+                            }
+                        </h5>
+                    </div>
+
+                    <!-- Group showtimes by movie for this date -->
+                    @{
+                        var movieShowtimes = dateGroup.GroupBy(s => s.Movie.Id).OrderBy(g => g.First().Movie.Title);
+                    }
+
+                    @foreach (var movieGroup in movieShowtimes)
+                    {
+                        var movie = movieGroup.First().Movie;
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-auto">
+                                            <img src="@movie.PosterUrl" alt="@movie.Title" class="movie-poster">
+                                        </div>
+                                        <div class="col">
+                                            <h5 class="movie-title">@movie.Title</h5>
+                                            <p class="movie-details">
+                                            @movie.Director • @movie.Duration' • @(movie.Duration / 60)h@(movie.Duration % 60)'
+                                            @if (!string.IsNullOrEmpty(movie.TrailerUrl))
+                                            {
+                                                        <span class="badge bg-secondary">Trailer</span>
+                                            }
+                                            </p>
+                                            <p class="movie-details">@Html.Raw(movie.Description)</p>
+
+                                            <div class="d-flex flex-wrap mt-3">
+                                            @foreach (var showtime in movieGroup.OrderBy(s => s.StartTime))
+                                            {
+                                                        <div class="time-button">
+                                                    @showtime.StartTime.ToString(@"hh\:mm")
+                                                    @if (showtime.TicketPrice > 0)
+                                                    {
+                                                          <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
+                                                    }
+                                                        </div>
+                                            }
+                                            </div>
+                                            <!-- Add Time Button -->
+                                            <button type="button" class="btn btn-outline-success ms-2" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addTimeModal" 
+                                                    data-movie-id="@movie.Id" 
+                                                    data-movie-title="@movie.Title"
+                                                    data-screen-id="@Model.Screen.Id"
+                                                    data-date="@date.ToString("yyyy-MM-dd")">
+                                                <i class="fas fa-plus"></i> Add Time
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                    }
+
+                    <!-- If no movies for this date, display a message -->
+                    @if (!movieShowtimes.Any())
+                    {
+                            <div class="card">
+                                <div class="card-body text-center py-4">
+                                    <p class="text-muted mb-0">No showtimes scheduled for this date.</p>
+                                </div>
+                            </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- If no showtimes at all, display a message -->
+    @if (!Model.ShowTimes.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <h5 class="text-muted mb-3">No showtimes found for the selected criteria</h5>
+                        <p>Try adjusting your date range or add new showtimes.</p>
                     </div>
                 </div>
+            </div>
         </div>
-    </div>
-</div>
+    }
+
+
 
 <!-- Add Showtime Modal -->
 <div class="modal fade" id="addShowtimeModal" tabindex="-1" aria-labelledby="addShowtimeModalLabel" aria-hidden="true">
@@ -143,6 +179,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="AddShowtimes" asp-controller="Screen" method="post">
+                <input type="hidden" id="screenId" value="@screen.Id"/>
                 <div class="modal-body">
                     <input type="hidden" />
 
@@ -150,7 +187,17 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Select Movie</label>
                         <select class="form-select" id="movieSelect">
-                            <option value="">-- Select Movie --</option>
+                            <option disable selected value="">-- Select Movie --</option>
+                            @foreach (var movie in Movies)
+							{
+                                    <option value="@movie.Id" 
+                                    data-poster="@movie.PosterUrl" 
+                                    data-genre="@movie.Genre" 
+                                    data-duration="@movie.Duration" 
+                                    data-description="@movie.Description">
+                                    @movie.Title
+                                    </option>
+							}
                         </select>
                         <span  class="text-danger"></span>
                     </div>
@@ -178,7 +225,7 @@
 
                     <!-- Date Selection -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Select Date(s)</label>
+                        <label class="form-label fw-bold">Select Date</label>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="input-group">
@@ -186,14 +233,6 @@
                                     <input type="date" id="showDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <button type="button" id="addDateBtn" class="btn btn-outline-primary">
-                                    <i class="fas fa-plus me-1"></i> Add Date
-                                </button>
-                            </div>
-                        </div>
-                        <div id="selectedDates" class="mt-2">
-                            <!-- Selected dates will appear here -->
                         </div>
                     </div>
 
@@ -204,18 +243,28 @@
                             <div class="col-md-6">
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                                    <input type="time" id="showTime" class="form-control">
+                                    <input type="time" id="showTime" class="form-control" disabled>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <button type="button" id="addTimeBtn" class="btn btn-outline-primary">
+                                <button type="button" id="addTimeBtn" class="btn btn-outline-primary" disabled>
                                     <i class="fas fa-plus me-1"></i> Add Time
                                 </button>
                             </div>
                         </div>
-                        <div id="selectedTimes" class="mt-2">
-                            <!-- Selected times will appear here -->
+                        <div id="selectedTimes" class="mt-2"></div>
+                    </div>
+                    <!-- Hidden Input for Submission -->
+                    <input type="hidden" name="showtimesData" id="showtimesData">
+
+                    <!-- Ticket Price Input -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ticket Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="ticketPrice" class="form-control" min="0" step="0.01">
                         </div>
+                        <span class="text-danger"></span>
                     </div>
 
                     <!-- Preview of scheduled showtimes -->
@@ -250,3 +299,52 @@
         </div>
     </div>
 </div>
+
+<!-- Add Time Modal -->
+<div class="modal fade" id="addTimeModal" tabindex="-1" aria-labelledby="addTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="addTimeModalLabel">Add New Time</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddTime" asp-controller="Screen" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="movieId" name="MovieId" />
+                    <input type="hidden" name="ScreenId" value="@screen.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Movie</label>
+                        <input type="text" id="movieTitleDisplay" class="form-control" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="ShowDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Time</label>
+                        <input type="time" name="ShowTime" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Price (K)</label>
+                        <input type="number" name="Price" class="form-control" value="45" min="0" step="0.1" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Save Time
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+        <script src="~/js/showTime.js"></script>
+} 

@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -262,12 +262,107 @@ body {
     padding: 6px 12px;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative; /* For icon positioning */
 }
 
     .time-button:hover {
         background-color: #f8f9fa;
         border-color: #0d6efd;
     }
+
+    /* Controls that appear on hover */
+    .time-button .time-controls {
+        display: none;
+        position: absolute;
+        top: -10px;
+        right: -10px;
+    }
+
+    .time-button:hover .time-controls {
+        display: flex;
+    }
+
+    /* Edit and delete buttons */
+    .time-button .edit-time,
+    .time-button .delete-time {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 4px;
+        cursor: pointer;
+        font-size: 10px;
+        color: white;
+    }
+
+    .time-button .edit-time {
+        background-color: #0d6efd;
+    }
+
+    .time-button .delete-time {
+        background-color: #dc3545;
+    }
+
+    /* Style for the time input when editing */
+    .time-button .time-input {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        text-align: center;
+        outline: none;
+    }
+
+    /* Active editing state */
+    .time-button.editing {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Deletion confirmation overlay */
+    .time-button .delete-confirm {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(220, 53, 69, 0.9);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        z-index: 10;
+    }
+
+        .time-button .delete-confirm div {
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .time-button .delete-confirm button {
+            margin: 0 3px;
+            padding: 2px 6px;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .time-button .delete-confirm .confirm-yes {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .time-button .delete-confirm .confirm-no {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
 
 .price-tag {
     font-size: 10px;
@@ -276,8 +371,10 @@ body {
 }
 
 .movie-poster {
-    max-width: 100px;
+    width: 100px;
+    height: auto;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .movie-title {

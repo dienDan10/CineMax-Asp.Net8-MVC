@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using Models.Request;
 using Models.ViewModels;
 using Utility;
 
@@ -136,7 +137,7 @@ namespace CineMaxMvc.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult ShowTime(int? screenId)
+        public IActionResult ShowTime(int? screenId, DateTime? startDate, DateTime? endDate)
         {
             ShowTimeVM showTimeVM = new ShowTimeVM();
 
@@ -144,10 +145,73 @@ namespace CineMaxMvc.Areas.Admin.Controllers
 
             if (screen == null) return NotFound();
 
+            DateTime from = startDate ?? DateTime.Today;
+            DateTime to = endDate ?? DateTime.Today.AddDays(14);
+
+            var showtimes = _unitOfWork.ShowTime.GetAll(
+                s => s.ScreenId == screenId &&
+                s.Date >= from
+                && s.Date <= to,
+                includeProperties: "Movie")
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
+                .ToList();
+
+            var Movies = _unitOfWork.Movie.GetAll(c => c.IsActive).ToList();
+
             showTimeVM.Screen = screen;
+            showTimeVM.Movies = Movies;
+            showTimeVM.ShowTimes = showtimes;
+            showTimeVM.StartDate = from;
+            showTimeVM.EndDate = to;
 
             return View(showTimeVM);
         }
+
+        [HttpPost]
+        public IActionResult AddShowtimes([FromBody] ShowtimeRequest request)
+        {
+            if (request == null || request.MovieId == 0 || request.Showtimes == null || !request.Showtimes.Any())
+            {
+                return Json(new { success = false, message = "Invalid data received." });
+            }
+
+            var movie = _unitOfWork.Movie.GetOne(m => m.Id == request.MovieId);
+
+            try
+            {
+                foreach (var showtime in request.Showtimes)
+                {
+                    foreach (var time in showtime.Times)
+                    {
+                        var startTime = TimeSpan.Parse(time);
+                        var endTime = (DateTime.Today + startTime).AddMinutes(movie.Duration).TimeOfDay;
+
+                        var newShowtime = new ShowTime
+                        {
+                            MovieId = request.MovieId,
+                            ScreenId = request.ScreenId,
+                            TicketPrice = request.TicketPrice,
+                            Date = DateTime.Parse(showtime.Date),
+                            StartTime = startTime,
+                            EndTime = endTime,
+                        };
+
+                        _unitOfWork.ShowTime.Add(newShowtime);
+                    }
+                }
+
+                _unitOfWork.Save();
+
+                return Json(new { success = true, message = "Showtimes added successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while saving showtimes.", error = ex.Message });
+            }
+        }
+
+
 
         #region API CALLS
         [HttpPost]
