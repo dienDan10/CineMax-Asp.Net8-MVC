@@ -27,7 +27,6 @@
     </div>
 
     <!-- Showtime Filter Controls -->
-    <!-- Showtime Filter Controls -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card shadow-sm">
@@ -114,7 +113,7 @@
                                             <div class="d-flex flex-wrap mt-3">
                                             @foreach (var showtime in movieGroup.OrderBy(s => s.StartTime))
                                             {
-                                                        <div class="time-button">
+                                                        <div class="time-button" data-showtime-id="@showtime.Id">
                                                     @showtime.StartTime.ToString(@"hh\:mm")
                                                     @if (showtime.TicketPrice > 0)
                                                     {
@@ -130,7 +129,9 @@
                                                     data-movie-id="@movie.Id" 
                                                     data-movie-title="@movie.Title"
                                                     data-screen-id="@Model.Screen.Id"
-                                                    data-date="@date.ToString("yyyy-MM-dd")">
+                                                    data-date="@date.ToString("yyyy-MM-dd")" 
+                                                    disabled=@(date < DateTime.Today)
+                                                    >
                                                 <i class="fas fa-plus"></i> Add Time
                                             </button>
                                         </div>
@@ -311,7 +312,7 @@
             <form asp-action="AddTime" asp-controller="Screen" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="movieId" name="MovieId" />
-                    <input type="hidden" name="ScreenId" value="@screen.Id" />
+                    <input type="hidden" name="ScreenId" value="@screen.Id" id="addTimeScreenId"/>
 
                     <div class="mb-3">
                         <label class="form-label">Movie</label>
@@ -320,17 +321,17 @@
 
                     <div class="mb-3">
                         <label class="form-label">Date</label>
-                        <input type="date" name="ShowDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        <input type="date" name="ShowDate" class="form-control" id="addTimeDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Time</label>
-                        <input type="time" name="ShowTime" class="form-control" required />
+                        <input type="time" name="ShowTime" class="form-control" id="addTimeTime" required />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Price (K)</label>
-                        <input type="number" name="Price" class="form-control" value="45" min="0" step="0.1" required />
+                        <label class="form-label">Price</label>
+                        <input type="number" name="Price" class="form-control" id="addTimePrice" min="0" step="0.1" required />
                     </div>
                 </div>
                 <div class="modal-footer">

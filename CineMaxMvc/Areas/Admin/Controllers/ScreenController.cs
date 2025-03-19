@@ -168,6 +168,46 @@ namespace CineMaxMvc.Areas.Admin.Controllers
             return View(showTimeVM);
         }
 
+
+        #region API CALLS
+        [HttpPost]
+        public IActionResult ToggleSeatStatus([FromBody] int seatId)
+        {
+            var seat = _unitOfWork.Seat.GetOne(s => s.Id == seatId);
+            if (seat == null)
+            {
+                return Json(new { success = false, message = "Seat not found!" });
+            }
+
+            // Toggle active status
+            seat.IsActive = !seat.IsActive;
+            seat.LastUpdatedAt = DateTime.Now;
+
+            _unitOfWork.Seat.Update(seat);
+            _unitOfWork.Save();
+
+            return Json(new { success = true, message = "Seat status updated!", isActive = seat.IsActive });
+        }
+
+        [HttpPost]
+        public IActionResult ToggleStatus([FromBody] int id)
+        {
+            var screen = _unitOfWork.Screen.GetOne(s => s.Id == id);
+            if (screen == null)
+            {
+                return Json(new { success = false, message = "Screen not found!" });
+            }
+
+            // Toggle active status
+            screen.IsActive = !screen.IsActive;
+            screen.LastUpdatedAt = DateTime.Now;
+
+            _unitOfWork.Screen.Update(screen);
+            _unitOfWork.Save();
+
+            return Json(new { success = true, message = "Screen status updated!", isActive = screen.IsActive });
+        }
+
         [HttpPost]
         public IActionResult AddShowtimes([FromBody] ShowtimeRequest request)
         {
@@ -211,45 +251,58 @@ namespace CineMaxMvc.Areas.Admin.Controllers
             }
         }
 
-
-
-        #region API CALLS
         [HttpPost]
-        public IActionResult ToggleSeatStatus([FromBody] int seatId)
+        public IActionResult UpdateShowtime([FromBody] UpdateShowTimeRequest request)
         {
-            var seat = _unitOfWork.Seat.GetOne(s => s.Id == seatId);
-            if (seat == null)
+
+            if (request == null || request.ShowtimeId <= 0 || string.IsNullOrEmpty(request.NewTime))
             {
-                return Json(new { success = false, message = "Seat not found!" });
+                return Json(new { success = false, message = "Invalid request data." });
             }
 
-            // Toggle active status
-            seat.IsActive = !seat.IsActive;
-            seat.LastUpdatedAt = DateTime.Now;
+            // Convert time string to TimeSpan
+            if (!TimeSpan.TryParse(request.NewTime, out TimeSpan parsedTime))
+            {
+                return Json(new { success = false, message = "Invalid time format." });
+            }
 
-            _unitOfWork.Seat.Update(seat);
+            var showtime = _unitOfWork.ShowTime.GetOne(s => s.Id == request.ShowtimeId, includeProperties: "Movie");
+            if (showtime == null)
+            {
+                return Json(new { success = false, message = "Showtime not found." });
+            }
+
+            var startTime = TimeSpan.Parse(request.NewTime);
+            var endTime = (DateTime.Today + startTime).AddMinutes(showtime.Movie.Duration).TimeOfDay;
+            showtime.StartTime = startTime;
+            showtime.EndTime = endTime;
+            showtime.LastUpdatedAt = DateTime.Now;
+            _unitOfWork.ShowTime.Update(showtime);
             _unitOfWork.Save();
 
-            return Json(new { success = true, message = "Seat status updated!", isActive = seat.IsActive });
+
+            return Json(new { success = true, message = "Showtime updated successfully!" });
         }
 
         [HttpPost]
-        public IActionResult ToggleStatus([FromBody] int id)
+        public IActionResult DeleteShowtime([FromBody] DeleteShowTimeRequest request)
         {
-            var screen = _unitOfWork.Screen.GetOne(s => s.Id == id);
-            if (screen == null)
+            if (request == null || request.ShowTimeId <= 0)
             {
-                return Json(new { success = false, message = "Screen not found!" });
+                return Json(new { success = false, message = "Invalid request data." });
             }
 
-            // Toggle active status
-            screen.IsActive = !screen.IsActive;
-            screen.LastUpdatedAt = DateTime.Now;
+            var showtime = _unitOfWork.ShowTime.GetOne(s => s.Id == request.ShowTimeId);
+            if (showtime == null)
+            {
+                return Json(new { success = false, message = "Showtime not found." });
+            }
 
-            _unitOfWork.Screen.Update(screen);
+            _unitOfWork.ShowTime.Remove(showtime);
             _unitOfWork.Save();
 
-            return Json(new { success = true, message = "Screen status updated!", isActive = screen.IsActive });
+            return Json(new { success = true, message = "Showtime deleted successfully!" });
+
         }
         #endregion
 

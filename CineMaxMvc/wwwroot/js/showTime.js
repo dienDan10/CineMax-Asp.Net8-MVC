@@ -116,17 +116,78 @@
 
     /* --------- ADD NEW TIME TO SHOW TIME SCRIPT ----------- */
     // Add data to model when open
-    $('#addTimeModal').on('show.bs.modal', function (event) {
-        // Button that triggered the modal
-        const button = $(event.relatedTarget);
+    $("#addTimeModal").on("show.bs.modal", function (event) {
+        let button = $(event.relatedTarget); // Button that triggered the modal
 
-        // Extract info from data-* attributes
-        const movieId = button.data('movie-id');
-        const movieTitle = button.data('movie-title');
+        // Extract values from data attributes
+        let movieId = button.data("movie-id");
+        let movieTitle = button.data("movie-title");
+        let screenId = button.data("screen-id");
+        let showDate = button.data("date");
 
-        // Update the modal's content
-        $('#movieId').val(movieId);
-        $('#movieTitleDisplay').val(movieTitle);
+        // Populate the modal fields
+        $("#movieId").val(movieId);
+        $("#movieTitleDisplay").val(movieTitle);
+        $("#addTimeScreenId").val(screenId);
+        $("#addTimeDate").val(showDate);
+
+        // Disable the date field
+        $("#addTimeDate").prop("disabled", true);
+    });
+
+    // action on submit form
+    $("#addTimeModal form").on("submit", function (e) {
+        e.preventDefault(); // Prevent default form submission
+
+        let movieId = $("#movieId").val();
+        let screenId = $("#addTimeScreenId").val();
+        let showDate = $("#addTimeDate").val();
+        let showTime = $("#addTimeTime").val();
+        let ticketPrice = parseFloat($("#addTimePrice").val());
+
+        if (!showTime) {
+            toastr.warning("Show time is required.");
+            return;
+        }
+
+        if (!ticketPrice) {
+            toastr.warning("Please input a valid ticket price.");
+            return;
+        }
+
+        // Format data to match your existing showtime structure
+        let requestData = {
+            screenId: screenId,
+            ticketPrice: ticketPrice,
+            movieId: movieId,
+            showtimes: [
+                {
+                    date: showDate,
+                    times: [showTime] // Single time wrapped in an array to match format
+                }
+            ]
+        };
+
+        console.log(requestData); // Debugging: Check data before sending
+
+        $.ajax({
+            url: "/Admin/Screen/AddShowtimes",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(requestData),
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    $("#addTimeModal").modal("hide"); // Close modal on success
+                    setTimeout(() => location.reload(), 1000); // Delay reload for smooth UX
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function () {
+                toastr.error("An error occurred while adding the showtime.");
+            }
+        });
     });
 
     /* --------- CREATE UPDATE AND DELETE SHOW TIME BUTTON ----------- */
@@ -146,17 +207,10 @@
 
             // Add edit and delete controls
             const $controls = $('<div class="time-controls"></div>');
-            const $editBtn = $('<div class="edit-time" title="Edit Time">✏️</div>');
             const $deleteBtn = $('<div class="delete-time" title="Delete Time">🗑️</div>');
 
-            $controls.append($editBtn).append($deleteBtn);
+            $controls.append($deleteBtn);
             $button.append($controls);
-
-            // Handle edit button click
-            $editBtn.on('click', function (e) {
-                e.stopPropagation();
-                startEditing($button);
-            });
 
             // Handle delete button click
             $deleteBtn.on('click', function (e) {
@@ -168,8 +222,6 @@
 
     // Function to start editing a time button
     function startEditing($button) {
-
-        console.log("Click");
         // If already editing, return
         if ($button.hasClass('editing')) {
             return;
@@ -178,7 +230,7 @@
         // Add editing class
         $button.addClass('editing');
 
-        // Get the current time from the button (the first text node)
+        // Get the current time from the button
         const currentTimeText = $button.contents().filter(function () {
             return this.nodeType === 3; // Text node
         }).text().trim();
@@ -189,82 +241,116 @@
             class: 'time-input'
         });
 
-        // Convert display time (HH:MM) to input time format
+        // Convert display time to input format
         const timeParts = currentTimeText.split(':');
         const hours = timeParts[0].padStart(2, '0');
         const minutes = timeParts[1] ? timeParts[1].padStart(2, '0') : '00';
         $inputField.val(`${hours}:${minutes}`);
 
-        // Save the price tag and controls if they exist
-        let $priceTag = $button.find('.price-tag').detach();
-        let $controls = $button.find('.time-controls').detach();
+        // Save the price tag and controls
+        let $priceTag = $button.find('.price-tag');
+        let $controls = $button.find('.time-controls');
+
+        // Store original controls HTML for later restoration
+        const controlsHtml = $controls.prop('outerHTML');
 
         // Clear the button content and add the input
         $button.empty().append($inputField);
 
-        // Add back the price tag and controls
+        // Re-add the price tag and controls (but keep them visible)
         if ($priceTag && $priceTag.length) {
             $button.append($priceTag);
         }
         $button.append($controls);
 
+        // Re-attach the delete event handler
+        $button.find('.delete-time').on('click', function (e) {
+            e.stopPropagation();
+            // Set a flag on the button to indicate delete was clicked
+            $button.data('delete-clicked', true);
+            console.log("delete clicked");
+            showDeleteConfirmation($button);
+        });
+
         // Focus the input
         $inputField.focus();
 
-        // Handle input blur (when user clicks away)
+        // Handle input blur with a delay to check for the delete action
         $inputField.on('blur', function () {
-            // Get the new time value
-            const newTime = $(this).val();
+            setTimeout(function () {
+                // Check if delete was clicked
+                if ($button.data('delete-clicked') === true) {
+                    // Reset the flag but don't proceed with time updating
+                    $button.removeData('delete-clicked');
+                    return;
+                }
 
-            // Format time for display (HH:MM)
-            let timeDisplay = currentTimeText;
-            if (newTime) {
-                const timeObj = new Date(`2000-01-01T${newTime}`);
-                timeDisplay = timeObj.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
+                // Get the new time value
+                const newTime = $inputField.val();
+
+                // Format time for display
+                let timeDisplay = currentTimeText;
+                if (newTime) {
+                    const timeObj = new Date(`2000-01-01T${newTime}`);
+                    timeDisplay = timeObj.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                }
+
+                // Remove editing class
+                $button.removeClass('editing');
+
+                // Clear the button content and restore the original text
+                $button.empty().text(timeDisplay);
+
+                // Add back the price tag and controls
+                if ($priceTag && $priceTag.length) {
+                    $button.append($priceTag);
+                }
+
+                // Append controls and re-initialize the handlers
+                $button.append($(controlsHtml));
+
+                // Re-initialize the delete button handler
+                $button.find('.delete-time').on('click', function (e) {
+                    e.stopPropagation();
+                    console.log("click");
+                    showDeleteConfirmation($button);
                 });
-            }
 
-            // Remove editing class
-            $button.removeClass('editing');
-
-            // Clear the button content and restore the original text
-            $button.empty().text(timeDisplay);
-
-            // Add back the price tag and controls
-            if ($priceTag && $priceTag.length) {
-                $button.append($priceTag);
-            }
-            $button.append($controls);
-
-            // Check if the time has actually changed
-            if (timeDisplay !== currentTimeText) {
-                // Send an AJAX request to update the time in the database
-                updateShowtimeInDatabase($button.data('showtime-id'), timeDisplay);
-            }
+                // Check if the time has actually changed
+                if (timeDisplay !== currentTimeText) {
+                    updateShowtimeInDatabase($button.data('showtime-id'), timeDisplay);
+                }
+            }, 100); // Short delay to allow other event handlers to fire
         });
 
-        // Handle Enter key
+        // Handle Enter and Escape keys
         $inputField.on('keydown', function (e) {
             if (e.key === 'Enter') {
-                $(this).blur(); // Trigger the blur event
-            }
-            // Handle Escape key to cancel editing
-            else if (e.key === 'Escape') {
+                $(this).blur();
+            } else if (e.key === 'Escape') {
                 $button.removeClass('editing');
                 $button.empty().text(currentTimeText);
                 if ($priceTag && $priceTag.length) {
                     $button.append($priceTag);
                 }
-                $button.append($controls);
+                $button.append($(controlsHtml));
+                // Re-initialize the delete button handler
+                $button.find('.delete-time').on('click', function (e) {
+                    e.stopPropagation();
+                    console.log("click");
+                    showDeleteConfirmation($button);
+                });
             }
         });
 
         // Handle clicks outside the button
         $(document).on('click.timeButton', function (e) {
-            if (!$(e.target).closest($button).length) {
+            if (!$(e.target).closest($button).length &&
+                !$(e.target).closest('.delete-confirm').length) {
                 $inputField.blur();
                 $(document).off('click.timeButton');
             }
@@ -273,143 +359,92 @@
 
     // Function to show delete confirmation
     function showDeleteConfirmation($button) {
-        // Create confirmation overlay
-        const $confirm = $(`
-            <div class="delete-confirm">
-                <div>Delete this time?</div>
-                <div>
-                    <button class="confirm-yes">Yes</button>
-                    <button class="confirm-no">No</button>
-                </div>
-            </div>
-        `);
+        const showtimeId = $button.data('showtime-id');
 
-        // Add to button
-        $button.append($confirm);
-
-        // Handle Yes click
-        $confirm.find('.confirm-yes').on('click', function () {
-            const showtimeId = $button.data('showtime-id');
-            deleteShowtime(showtimeId, $button);
-        });
-
-        // Handle No click
-        $confirm.find('.confirm-no').on('click', function () {
-            $confirm.remove();
-        });
-
-        // Handle clicks outside the confirmation
-        $(document).on('click.deleteConfirm', function (e) {
-            if (!$(e.target).closest($confirm).length && !$(e.target).closest('.delete-time').length) {
-                $confirm.remove();
-                $(document).off('click.deleteConfirm');
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteShowtime(showtimeId, $button);
             }
         });
     }
 
     // Function to delete a showtime
     function deleteShowtime(showtimeId, $button) {
-        // Add a loading indicator
-        $.notify({
-            message: 'Deleting showtime...'
-        }, {
-            type: 'info',
-            placement: { from: "bottom", align: "right" }
-        });
-
-        // Replace with your actual API endpoint
-        const url = '/api/Screen/DeleteShowtime';
+        if (!showtimeId) {
+            console.error("Missing showtime ID.");
+            return;
+        }
 
         $.ajax({
-            url: url,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                showtimeId: showtimeId
-            }),
+            url: "/Admin/Screen/DeleteShowtime",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ showtimeId: showtimeId }),
             success: function (response) {
-                console.log('Showtime deleted successfully:', response);
-
-                // Remove the button with animation
-                $button.fadeOut(300, function () {
-                    $(this).remove();
-                });
-
-                // Show success notification
-                $.notify({
-                    message: 'Showtime deleted successfully'
-                }, {
-                    type: 'success',
-                    placement: { from: "bottom", align: "right" }
-                });
+                if (response.success) {
+                    toastr.success(response.message);
+                    $button.fadeOut(300, function () {
+                        $(this).remove(); // Remove the button from UI after fade-out
+                    });
+                } else {
+                    toastr.error(response.message);
+                }
             },
             error: function (xhr, status, error) {
-                console.error('Error deleting showtime:', error);
-
-                // Remove the confirmation dialog
-                $button.find('.delete-confirm').remove();
-
-                // Show error notification
-                $.notify({
-                    message: 'Failed to delete showtime: ' + (xhr.responseJSON?.message || error)
-                }, {
-                    type: 'danger',
-                    placement: { from: "bottom", align: "right" }
-                });
+                console.error("Error deleting showtime:", error);
+                toastr.error("Failed to delete showtime. Please try again.");
             }
         });
     }
 
     // Function to update showtime in database via AJAX
-    function updateShowtimeInDatabase(showtimeId, newTime) {
-        // Add a loading indicator
-        $.notify({
-            message: 'Updating showtime...'
-        }, {
-            type: 'info',
-            placement: { from: "bottom", align: "right" }
-        });
 
-        // Replace with your actual API endpoint
-        const url = '/api/Screen/UpdateShowtime';
+    function updateShowtimeInDatabase(showtimeId, newTime) {
+        if (!showtimeId || !newTime) {
+            console.error("Missing showtime ID or new time.");
+            return;
+        }
+
+        let requestData = {
+            showtimeId: showtimeId,
+            newTime: newTime
+        };
+
+        console.log("Updating showtime:", requestData); // Debugging
 
         $.ajax({
-            url: url,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                showtimeId: showtimeId,
-                time: newTime
-            }),
+            url: "/Admin/Screen/UpdateShowtime",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(requestData),
             success: function (response) {
-                console.log('Showtime updated successfully:', response);
-                // Show success notification
-                $.notify({
-                    message: 'Showtime updated successfully'
-                }, {
-                    type: 'success',
-                    placement: { from: "bottom", align: "right" }
-                });
+                if (response.success) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message);
+                }
             },
             error: function (xhr, status, error) {
-                console.error('Error updating showtime:', error);
-                // Show error notification
-                $.notify({
-                    message: 'Failed to update showtime: ' + (xhr.responseJSON?.message || error)
-                }, {
-                    type: 'danger',
-                    placement: { from: "bottom", align: "right" }
-                });
+                console.error("Error updating showtime:", error);
+                toastr.error("Failed to update showtime. Please try again.");
             }
         });
     }
 
     // Click on time button now directly opens edit mode
-    //$('.time-button').on('click', function (e) {
-    //    // Only proceed if we didn't click on a control
-    //    if (!$(e.target).closest('.time-controls').length &&
-    //        !$(e.target).closest('.delete-confirm').length) {
-    //        startEditing($(this));
-    //    }
-    //});
+    $('.time-button').on('click', function (e) {
+        // Only proceed if we didn't click on a control
+        if (!$(e.target).closest('.time-controls').length &&
+            !$(e.target).closest('.delete-confirm').length) {
+            startEditing($(this));
+        }
+    });
 });
