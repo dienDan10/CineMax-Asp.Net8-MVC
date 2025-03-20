@@ -41,8 +41,6 @@ namespace DataAccess.Repository
                     query = query.Include(includeProperty);
                 }
             }
-
-
             return query.ToList();
         }
 

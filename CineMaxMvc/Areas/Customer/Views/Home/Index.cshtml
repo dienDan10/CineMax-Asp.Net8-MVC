@@ -1,1 +1,179 @@
-﻿<h1>Hello world</h1>
+﻿@model HomeVM
+@{
+    var Provinces = Model.Provinces;
+    var Theaters = Model.Theaters;
+    var Showtimes = Model.ShowTimes;
+}
+<div class="container my-4">
+        <h1 class="text-center main-heading">Mua vé theo rạp</h1>
+
+        <div class="row">
+            <!-- City/Region Selection -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Khu vực</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        @foreach (var province in Provinces)
+						{
+							<div class="theater-list-item @(Model.ProvinceId == province.Id ? "active" : "")"
+                                date-province-id="@province.Id"
+                                onclick="loadTheaters(@province.Id)">
+								@province.Name <span class="float-end badge-count">@province.TheaterCount</span>
+							</div>
+						}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theater Selection -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Cinemas</h5>
+                    </div>
+                    <div class="list-group list-group-flush" id="theaterList">
+                    @foreach (var theater in Theaters)
+                    {
+                        <div class="cinema-list-item @(Model.TheaterId == theater.Id ? "active" : "")"
+                            data-theater-id="@theater.Id"
+                            data-theater-name="@theater.Name" 
+                            data-theater-address="@theater.Address"
+                            onclick="loadShowTimes(@theater.Id, this)"
+                        >
+								@theater.Name
+							</div>
+                    }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date and Showtime Selection -->
+            <div class="col-md-6">
+
+                <!-- Date Selection -->
+                @{
+                    var today = DateTime.Today;
+                    var daysOfWeek = new[] { "CN", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7" };
+                }
+                <div class="row date-selector mb-3">
+                    @for (int i = 0; i <= 5; i++)
+                    {
+                        var date = today.AddDays(i);
+                        var isActive = (i == 0) ? "active" : "";
+                        <div class="col date-item @isActive" data-date="@date.ToString("yyyy-MM-dd")" 
+                            onclick="selectDate(this)">
+                        <div>@date.ToString("dd/MM")</div>
+                        <small>@daysOfWeek[(int)date.DayOfWeek]</small>
+                    </div>
+                    }
+                </div>
+
+                <!-- Notification -->
+                <div class="notification-btn text-center">
+                    <i class="fa-solid fa-bell me-2"></i> Nhấn vào suất chiếu để tiến hành mua vé
+                </div>
+
+                <!-- Theater Info -->
+                @{
+                    var selectedTheater = Theaters.FirstOrDefault(t => t.Id == Model.TheaterId);
+                    var vietnameseDays = new[] { "Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy" };
+                    var formattedDate = $"{vietnameseDays[(int)today.DayOfWeek]}, {today:dd/MM/yyyy}";
+                }
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p>
+                            <span class="h5" id="theaterName">
+                                @selectedTheater?.Name
+                            </span>
+                            • 
+                            <span class="h5" id="selectedDate">
+                                @formattedDate
+                            </span>
+                        </p>
+                        <p class="theater-location" id="theaterAddress">
+                            @selectedTheater?.Address
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Movie Listings -->
+                <div id="showtimeContainer">
+                    @await Html.PartialAsync("_ShowTimePartial", Showtimes)
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+@section scripts {
+        <script>
+        function loadTheaters(provinceId) {
+            $.get("/Customer/Home/GetTheaters", { provinceId: provinceId }, function(data) {
+                $("#theaterList").html(data);
+            });
+
+            // set active for the province
+            $(".theater-list-item").removeClass("active");
+            $(`.theater-list-item[date-province-id=${provinceId}]`).addClass("active");
+        }
+
+        function loadShowTimes(theaterId, element) {
+            // get the selected date
+            var selectedDate = $(".date-item.active").data("date");
+
+            // send the request
+             $.get("/Customer/Home/GetShowTimes", { theaterId: theaterId, date: selectedDate }, function(data) {
+                $("#showtimeContainer").html(data);
+             });
+
+            // change active status
+            $(".cinema-list-item").removeClass("active");
+            $(element).addClass("active");
+
+            // change theater info display
+            var theaterName = $(element).data("theater-name");
+            var theaterAddress = $(element).data("theater-address");
+            $("#theaterName").text(theaterName);
+            $("#theaterAddress").text(theaterAddress);
+        }
+
+        function selectDate(element) {
+            // get the selected theater id
+            var theaterId = $(".cinema-list-item.active").data("theater-id");
+            // Get the full date from the data attribute
+            var fullDateStr = $(element).data("date");
+
+            // send the request
+            $.get("/Customer/Home/GetShowTimes", { theaterId: theaterId, date: fullDateStr }, function(data) {
+                $("#showtimeContainer").html(data);
+            });
+
+            $(".date-item").removeClass("active"); 
+            $(element).addClass("active");
+
+            
+
+            // Convert to JavaScript Date object
+            var fullDate = new Date(fullDateStr);
+
+            // Get the weekday name (Vietnamese format)
+            var weekdays = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            var dayOfWeek = weekdays[fullDate.getDay()]; // Get the correct day name
+
+            // Format the date as "dd/MM/yyyy"
+            var formattedDate = fullDate.toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
+
+            // Construct the final string
+            var finalDate = `${dayOfWeek}, ${formattedDate}`;
+
+            // Update the theater info section
+            $("#selectedDate").text(finalDate);
+        }
+    </script>
+}

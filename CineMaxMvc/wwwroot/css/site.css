@@ -8,6 +8,7 @@
   }
 }
 
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
@@ -259,11 +260,20 @@ body {
     border-radius: 4px;
     text-align: center;
     border: 1px solid #dee2e6;
+    background-color: white;
     padding: 6px 12px;
     cursor: pointer;
     transition: all 0.2s;
     position: relative; /* For icon positioning */
 }
+
+    /* Disabled state */
+    .time-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        background-color: #e9ecef;
+        border-color: #ced4da;
+    }
 
     .time-button:hover {
         background-color: #f8f9fa;
@@ -323,46 +333,7 @@ body {
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
 
-    /* Deletion confirmation overlay */
-    .time-button .delete-confirm {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(220, 53, 69, 0.9);
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        z-index: 10;
-    }
-
-        .time-button .delete-confirm div {
-            margin-bottom: 5px;
-            font-size: 12px;
-        }
-
-        .time-button .delete-confirm button {
-            margin: 0 3px;
-            padding: 2px 6px;
-            border: none;
-            border-radius: 3px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .time-button .delete-confirm .confirm-yes {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .time-button .delete-confirm .confirm-no {
-            background-color: #f8f9fa;
-            color: #212529;
-        }
+    
 
 .price-tag {
     font-size: 10px;
@@ -417,3 +388,10 @@ body {
     margin-top: 5px;
 }
 
+.btn-outline-success:disabled {
+    background-color: #d4d4d4 !important; /* Light gray background */
+    color: #a1a1a1 !important; /* Dimmed text */
+    border-color: #bfbfbf !important; /* Lighter border */
+    cursor: not-allowed !important; /* Show "not allowed" cursor */
+    opacity: 0.6; /* Reduce opacity */
+}

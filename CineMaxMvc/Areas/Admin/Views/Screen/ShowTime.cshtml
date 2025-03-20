@@ -113,13 +113,18 @@
                                             <div class="d-flex flex-wrap mt-3">
                                             @foreach (var showtime in movieGroup.OrderBy(s => s.StartTime))
                                             {
-                                                        <div class="time-button" data-showtime-id="@showtime.Id">
+                                                var showDateTime = showtime.Date.Add(showtime.StartTime);
+                                                var isPast = showDateTime <= DateTime.Now;
+                                                        <button class="time-button" data-showtime-id="@showtime.Id"
+                                                                                @(isPast ? "disabled" : "")>
                                                     @showtime.StartTime.ToString(@"hh\:mm")
                                                     @if (showtime.TicketPrice > 0)
                                                     {
-                                                          <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
+                                                          <span class="price-tag">
+                                                              @((showtime.TicketPrice / 1000).ToString("0"))K
+                                                          </span>
                                                     }
-                                                        </div>
+                                                        </button>
                                             }
                                             </div>
                                             <!-- Add Time Button -->

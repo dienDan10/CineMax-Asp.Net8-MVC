@@ -1,0 +1,21 @@
+﻿@model List<Theater>
+
+@if (Model.Any())
+{
+        <div class="list-group list-group-flush">
+        @foreach (var theater in Model)
+        {
+                    <div class="cinema-list-item"
+                         data-theater-id="@theater.Id"
+                         data-theater-name="@theater.Name" 
+                         data-theater-address="@theater.Address"
+                         onclick="loadShowTimes(@theater.Id, this)">
+                        @theater.Name
+                    </div>
+        }
+        </div>
+}
+else
+{
+        <p class="text-muted">No theaters available in this province.</p>
+}

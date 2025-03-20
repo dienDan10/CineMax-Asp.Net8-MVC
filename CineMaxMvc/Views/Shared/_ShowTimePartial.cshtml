@@ -1,0 +1,50 @@
+﻿@model List<ShowTime>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <h4 class="text-center">No showtimes available for this date.</h4>
+        <p class="text-center">Please select another date or theater.</p>
+    </div>
+}
+else
+{
+    
+    var movieGroups = Model
+        .GroupBy(s => s.MovieId)
+        .Select(group => new
+        {
+            MovieId = group.Key,
+            Movie = group.First().Movie,
+            Showtimes = group.OrderBy(s => s.StartTime).ToList()
+        });
+    
+    @foreach (var group in movieGroups)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-auto">
+                        <img src="@group.Movie.PosterUrl" alt="@group.Movie.Title Image" class="movie-poster">
+                    </div>
+                    <div class="col">
+                        <h5 class="movie-title">@group.Movie.Title</h5>
+                        <p class="movie-details">@group.Movie.Director • @group.Movie.Duration' • @(group.Movie.Duration / 60)h@(group.Movie.Duration % 60)' <span class="badge bg-secondary">Trailer</span></p>
+                        <p class="movie-details">2D Phụ Đề Việt</p>
+                        <div class="d-flex flex-wrap mt-3">
+                            @foreach (var showtime in group.Showtimes) {
+                                <div class="time-button">
+                                    @showtime.StartTime.ToString(@"hh\:mm")
+                                    @if (showtime.TicketPrice > 0)
+                                    {
+                                        <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -95,7 +95,19 @@ namespace CineMaxMvc.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult GetTheaters(int? provinceId)
         {
-            if (provinceId == null) return Json(new { data = _unitOfWork.Theater.GetAll(null, includeProperties: "Province") });
+            try
+            {
+
+                if (provinceId == null)
+                {
+                    var data = _unitOfWork.Theater.GetAll(null, includeProperties: "Province");
+                    return Json(new { data = data });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return Json(new { data = _unitOfWork.Theater.GetAll(t => t.ProvinceId == provinceId, "Province") });
 
         }

@@ -32,6 +32,12 @@ namespace DataAccess.Data
 
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<BookingDetail>()
+                .HasOne(bd => bd.Seat)
+                .WithMany()
+                .HasForeignKey(bd => bd.SeatId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // Keep the cascade delete from Booking to BookingDetail
             modelBuilder.Entity<BookingDetail>()
                 .HasOne(bd => bd.Booking)

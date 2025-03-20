@@ -3,7 +3,7 @@
     var table = $('#theatersTable').DataTable({
         procesing: true,
         ajax: {
-            url: 'Theater/GetTheaters',
+            url: '/Admin/Theater/GetTheaters',
             type: 'POST',
             data: function (d) {
                 return {
