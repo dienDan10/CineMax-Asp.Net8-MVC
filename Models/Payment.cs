@@ -22,7 +22,8 @@ namespace Models
         public double Amount { get; set; }
         public string? PaymentMethod { get; set; }
         public DateTime PaymentDate { get; set; }
-        public string? TransactionId { get; set; }
+        public string? SessionId { get; set; }
+        public string? PaymentIntentId { get; set; }
         public string? PaymentStatus { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime LastUpdatedAt { get; set; } = DateTime.Now;

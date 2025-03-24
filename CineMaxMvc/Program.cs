@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using sib_api_v3_sdk.Client;
+using Stripe;
 using Utility;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,11 +28,21 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 });
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(100);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddAuthentication().AddGoogle(options =>
 {
     options.ClientId = builder.Configuration.GetSection("Authentication:Google:ClientId").Value;
     options.ClientSecret = builder.Configuration.GetSection("Authentication:Google:ClientSecret").Value;
 });
+
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -45,10 +56,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 app.UseStaticFiles();
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe")["SecretKey"];
 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 
 SeedDatabase();
 

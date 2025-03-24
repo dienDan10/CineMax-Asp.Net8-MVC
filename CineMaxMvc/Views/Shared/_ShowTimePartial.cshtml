@@ -33,13 +33,27 @@ else
                         <p class="movie-details">2D Phụ Đề Việt</p>
                         <div class="d-flex flex-wrap mt-3">
                             @foreach (var showtime in group.Showtimes) {
-                                <div class="time-button">
-                                    @showtime.StartTime.ToString(@"hh\:mm")
-                                    @if (showtime.TicketPrice > 0)
-                                    {
-                                        <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
-                                    }
-                                </div>
+                                var showDateTime = showtime.Date.Add(showtime.StartTime);
+                                var isPast = showDateTime <= DateTime.Now;
+                                if (isPast)
+                                {
+                                    <div class="time-button disabled">
+                                        @showtime.StartTime.ToString(@"hh\:mm")
+                                        @if (showtime.TicketPrice > 0)
+                                        {
+                                           <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
+                                        }
+                                    </div>
+                                } else
+                                {
+                                    <a class="time-button link" asp-area="Customer" asp-controller="Bookings" asp-action="SelectSeat"            asp-route-showtimeId="@showtime.Id">
+                                        @showtime.StartTime.ToString(@"hh\:mm")
+                                        @if (showtime.TicketPrice > 0)
+                                        {
+                                            <span class="price-tag">@((showtime.TicketPrice / 1000).ToString("0"))K</span>
+                                        }
+                                    </a>
+                                }
                             }
                         </div>
                     </div>

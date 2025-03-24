@@ -1,0 +1,176 @@
+﻿@model SeatSelectionVM
+
+
+<div class="container my-4">
+    <div class="row">
+        <!-- Left Column: Seat Selection -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body seat-selection-container">
+                    <!-- Legend -->
+                    <div class="seat-legend mb-4">
+                        <div class="d-flex justify-content-center gap-4">
+                            <div class="legend-item">
+                                <div class="seat selected"></div>
+                                <span>Ghế bạn chọn</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat unavailable"></div>
+                                <span>Không thể chọn</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="seat sold"></div>
+                                <span>Đã bán</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Screen -->
+                    <div class="screen-container text-center mb-5">
+                        <div class="screen">MÀN HÌNH</div>
+                        <div class="screen-shadow"></div>
+                    </div>
+
+                    <!-- Seats Grid -->
+                    <div class="seat-grid">
+                        @foreach (var row in Model.Rows)
+                        {
+                                <div class="row-container">
+                                    <div class="row-label">@row.Label</div>
+                                    <div class="seats-row">
+                                    @foreach (var seat in row.Seats)
+                                    {
+                                        @if (seat.Type == SeatType.Regular)
+                                        {
+                                                        <div class="seat @(seat.IsAvailable ? "available" : "sold")" 
+                                                             data-seat-id="@seat.Id" 
+                                                             data-row="@row.Label" 
+                                                             data-seat-number="@seat.Number"
+                                                             data-price="@seat.Price"
+                                            @(seat.IsAvailable ? "onclick=\"selectSeat(this)\"" : "")>
+                                                @(row.Label + seat.Number)
+                                                        </div>
+                                        }
+                                        else if (seat.Type == SeatType.Gap)
+                                        {
+                                                        <div class="seat-gap"></div>
+                                        }
+                                    }
+                                    </div>
+                                </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Booking Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.MovieTitle</h5>
+                    <div class="movie-details mb-3">
+                        <p class="theater-name">@Model.TheaterName</p>
+                        <p class="showtime fw-bold">
+                            Suất @Model.ShowTime.ToString(@"hh\:mm") @Model.ShowDate.ToString("dd/MM/yyyy")
+                        </p>
+                        <p class="screen-name">Phòng chiếu @Model.ScreenName</p>
+                    </div>
+
+                    <!-- Selected Seats -->
+                    <div class="selected-seats-container">
+                        <h6>Ghế đã chọn</h6>
+                        <div id="selectedSeatsList" class="selected-seats-list">
+                            <!-- Will be filled dynamically by JavaScript -->
+                        </div>
+                        <div class="no-seats-selected" id="noSeatsMessage">
+                            Vui lòng chọn ghế
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="order-summary mt-4">
+                        <h6>Tổng đơn hàng</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Tổng tiền:</span>
+                            <span id="totalPrice">0 đ</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons mt-4">
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Quay lại
+                            </a>
+                            <button id="continueButton" 
+                                    class="btn btn-primary" 
+                                    disabled
+                                    onclick="proceedToPayment()">
+                                Tiếp tục
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Concessions Section -->
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Thức ăn & Đồ uống</h5>
+
+                    <!-- Concessions Content -->
+                    <div class="tab-content" id="concessionTabContent">
+                        <!-- Combo Tab -->
+                        <div class="tab-pane fade show active" id="combo">
+                            <div class="concessions-grid">
+
+                                @foreach (var concession in Model.Concessions)
+                                {
+                                    <div class="concession-item">
+                                        <div class="d-none" id="concession-@concession.Id" data-concessionId="@concession.Id" data-price="@concession.Price" data-name="@concession.Name"></div>
+                                        <div class="concession-image">
+                                            <img src="@concession.ImageUrl" alt="Sweet Combo" class="img-fluid rounded" />
+                                        </div>
+                                        <div class="concession-details">
+                                            <h6 class="concession-title">@concession.Name</h6>
+                                            <p class="concession-description">@concession.Description</p>
+                                            <div class="concession-price">@concession.Price.ToString("N0") đ</div>
+                                            <div class="quantity-controls">
+                                                <button class="btn btn-sm btn-outline-secondary quantity-btn" onclick="changeQuantity(@concession.Id, -1)">-</button>
+                                                <input type="number" class="form-control quantity-input" id="quantity-@concession.Id" value="0" min="0" readonly>
+                                                <button class="btn btn-sm btn-outline-secondary quantity-btn" onclick="changeQuantity(@concession.Id, 1)">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                               
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modified Booking Form to include concessions -->
+<form id="bookingForm" method="post" asp-controller="Bookings" asp-action="ProcessSelectedSeat">
+    <input type="hidden" id="selectedSeatsInput" name="selectedSeats" />
+    <input type="hidden" name="showtimeId" value="@Model.ShowtimeId" />
+    <input type="hidden" name="totalAmount" id="totalAmountInput" />
+    <input type="hidden" id="selectedConcessionsInput" name="selectedConcessions" />
+</form>
+
+
+@section Scripts {
+        <script src="~/js/seatSelection.js"></script>
+}

@@ -1,5 +1,6 @@
 ﻿using DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
+using Models;
 using Models.ViewModels;
 
 namespace CineMaxMvc.Areas.Customer.Controllers
@@ -64,8 +65,13 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             return PartialView("_TheaterPartial", theaters);
         }
 
-        public IActionResult GetShowTimes(int theaterId, string date)
+        public IActionResult GetShowTimes(int? theaterId, string? date)
         {
+            if (theaterId == null || date == null)
+            {
+                return PartialView("_ShowtimePartial", new List<ShowTime>());
+            }
+
             var filterDate = DateTime.Parse(date);
             var showTimes = _unitOfWork.ShowTime
                 .GetAll(s => s.Screen.TheaterId == theaterId && s.Date == filterDate,
