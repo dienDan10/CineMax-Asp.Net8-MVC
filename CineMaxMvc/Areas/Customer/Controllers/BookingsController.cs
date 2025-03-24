@@ -1,9 +1,11 @@
-﻿using DataAccess.Repository.IRepository;
+﻿using CineMaxMvc.Services;
+using DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.Request;
 using Models.ViewModels;
 using Newtonsoft.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using Utility;
 
@@ -15,10 +17,12 @@ namespace CineMaxMvc.Areas.Customer.Controllers
     public class BookingsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly StripeService _stripeService;
 
-        public BookingsController(IUnitOfWork unitOfWork)
+        public BookingsController(IUnitOfWork unitOfWork, StripeService stripeService)
         {
             _unitOfWork = unitOfWork;
+            _stripeService = stripeService;
         }
 
         public IActionResult SelectSeat(int? showtimeId)
@@ -183,53 +187,143 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 return View(nameof(PaymentSelection), model);
             }
 
+            // SAVE BOOKING TO DB
+            var selectedSeats = seatSelection.SelectedSeats;
+            var selectedConcessions = seatSelection.SelectedConcessions;
+            var booking = new Booking();
+            var concessionOrder = new ConcessionOrder();
 
-            //var booking = new Booking
-            //{
-            //    ShowTimeId = seatSelection.ShowTimeId,
-            //    TotalAmount = seatSelection.TotalAmount,
-            //    PaymentStatus = Constant.PaymentStatus_Pending,
-            //    BookingStatus = Constant.BookingStatus_Pending,
-            //    IsActive = true,
-            //    CreatedAt = DateTime.Now,
-            //    LastUpdatedAt = DateTime.Now
-            //};
+            if (selectedSeats != null && selectedSeats.Count > 0)
+            {
+                booking = new Booking
+                {
+                    ShowTimeId = seatSelection.ShowTimeId,
+                    TotalAmount = selectedSeats.Aggregate(0.0, (total, seat) => total + seat.Price),
+                    BookingStatus = Constant.BookingStatus_Pending,
+                    IsActive = false,
+                    BookingDate = DateTime.Now,
+                    CreatedAt = DateTime.Now,
+                    LastUpdatedAt = DateTime.Now
+                };
 
-            //var userId = _unitOfWork.ApplicationUser.GetFirstOrDefault(u => u.UserName == User.Identity.Name).Id;
+                _unitOfWork.Booking.Add(booking);
+                _unitOfWork.Save();
 
-            //booking.UserId = userId;
+                foreach (var seat in selectedSeats)
+                {
+                    var bookingSeat = new BookingDetail
+                    {
+                        BookingId = booking.Id,
+                        SeatId = seat.Id,
+                        SeatName = $"{seat.Row}{seat.Number}",
+                        TicketPrice = seat.Price,
+                        CreatedAt = DateTime.Now,
+                        LastUpdatedAt = DateTime.Now
+                    };
 
-            //_unitOfWork.Booking.Add(booking);
-            //_unitOfWork.Save();
+                    _unitOfWork.BookingDetail.Add(bookingSeat);
+                    _unitOfWork.Save();
+                }
+            }
 
-            //foreach (var seat in seatSelection.SelectedSeats)
-            //{
-            //    var bookingSeat = new BookingSeat
-            //    {
-            //        BookingId = booking.Id,
-            //        SeatId = seat.Id
-            //    };
+            // SAVE CONCESSION ORDER TO DB
+            if (selectedConcessions != null && selectedConcessions.Count > 0)
+            {
+                concessionOrder = new ConcessionOrder
+                {
+                    OrderDate = DateTime.Now,
+                    TotalPrice = selectedConcessions.Aggregate(0.0, (total, concession) => total + concession.Subtotal),
+                    CreatedAt = DateTime.Now,
+                    LastUpdatedAt = DateTime.Now,
+                    IsActive = false
+                };
 
-            //    _unitOfWork.BookingSeat.Add(bookingSeat);
-            //}
+                _unitOfWork.ConcessionOrder.Add(concessionOrder);
+                _unitOfWork.Save();
 
-            //foreach (var concession in seatSelection.SelectedConcessions)
-            //{
-            //    var bookingConcession = new BookingConcession
-            //    {
-            //        BookingId = booking.Id,
-            //        ConcessionId = concession.Id,
-            //        Quantity = concession.Quantity
-            //    };
+                foreach (var concession in selectedConcessions)
+                {
+                    var orderDetail = new ConcessionOrderDetail
+                    {
+                        ConcessionOrderId = concessionOrder.Id,
+                        ConcessionId = concession.Id,
+                        Quantity = concession.Quantity,
+                        Price = concession.Subtotal,
+                        CreatedAt = DateTime.Now,
+                        LastUpdatedAt = DateTime.Now
+                    };
 
-            //    _unitOfWork.BookingConcession.Add(bookingConcession);
-            //}
+                    _unitOfWork.ConcessionOrderDetail.Add(orderDetail);
+                    _unitOfWork.Save();
+                }
+            }
 
-            //_unitOfWork.Save();
+            // sAVE PAYMENT TO DB
+            string userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            //HttpContext.Session.Remove(Constant.SeatSelectionData);
+            var payment = new Payment
+            {
+                UserId = userId,
+                BookingId = booking.Id == 0 ? null : booking.Id,
+                ConcessionOrderId = concessionOrder.Id == 0 ? null : concessionOrder.Id,
+                Email = model.Email,
+                Name = model.FullName,
+                PhoneNumber = model.Phone,
+                Amount = model.TotalAmount,
+                PaymentMethod = model.PaymentMethod,
+                PaymentDate = DateTime.Now,
+                PaymentStatus = Constant.PaymentStatus_Pending,
+                CreatedAt = DateTime.Now,
+                LastUpdatedAt = DateTime.Now
+            };
 
-            //return RedirectToAction(nameof(BookingConfirmation), new { bookingId = booking.Id });
+            if (User.IsInRole(Constant.Role_Admin) || User.IsInRole(Constant.Role_Employee))
+            {
+                payment.PaymentStatus = Constant.PaymentStatus_Success;
+                booking.BookingStatus = Constant.BookingStatus_Success;
+                booking.IsActive = true;
+                concessionOrder.IsActive = true;
+                _unitOfWork.Booking.Update(booking);
+                _unitOfWork.ConcessionOrder.Update(concessionOrder);
+                _unitOfWork.Payment.Add(payment);
+                _unitOfWork.Save();
+
+                // return to booking comfirmation page
+                return RedirectToAction(nameof(BookingConfirmation), new { paymentId = payment.Id });
+            }
+
+            _unitOfWork.Payment.Add(payment);
+            _unitOfWork.Save();
+
+            // IMPLEMENT PAYMENT GATEWAY FOR NORMAL USERS
+            var domain = "http://localhost:5030/";
+            var successUrl = $"{domain}Customer/Bookings/BookingConfirmation?paymentId={payment.Id}";
+            var cancelUrl = $"{domain}Customer/Bookings/SelectSeat?showtimeId={seatSelection.ShowTimeId}";
+
+            if (model.PaymentMethod == Constant.PaymentMethod_VnPay)
+            {
+                // IMPLEMENT VNPAY PAYMENT GATEWAY
+            }
+            else if (model.PaymentMethod == Constant.PaymentMethod_Atm)
+            {
+                // IMPLEMENT STRIPE PAYMENT GATEWAY
+                var session = _stripeService.CreateCheckoutSession(selectedSeats, selectedConcessions, successUrl, cancelUrl)
+                                            .GetAwaiter()
+                                            .GetResult();
+                _unitOfWork.Payment.UpdateStripePaymentID(payment.Id, session.Id, session.PaymentIntentId);
+                _unitOfWork.Save();
+
+                return Json(new { success = true, redirectUrl = session.Url });
+            }
+
+
+
+            return new StatusCodeResult(303);
+        }
+
+        public IActionResult BookingConfirmation(int paymentId)
+        {
+
             return View();
         }
     }

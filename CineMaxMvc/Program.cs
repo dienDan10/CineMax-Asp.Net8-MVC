@@ -1,3 +1,4 @@
+using CineMaxMvc.Services;
 using DataAccess.Data;
 using DataAccess.DbInitializer;
 using DataAccess.Repository;
@@ -47,6 +48,7 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<StripeService>();
 
 var app = builder.Build();
 

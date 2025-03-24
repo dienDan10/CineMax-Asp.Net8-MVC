@@ -16,7 +16,7 @@ namespace DataAccess.Repository
         {
             var bookedSeatIds = _context.BookingDetails
                 .AsNoTracking()
-                .Where(b => b.Booking.ShowTimeId == showtimeId)
+                .Where(b => b.Booking.ShowTimeId == showtimeId && b.Booking.IsActive)
                 .Select(b => b.SeatId)
                 .Where(seatId => seatId.HasValue)
                 .Select(seatId => seatId.Value)

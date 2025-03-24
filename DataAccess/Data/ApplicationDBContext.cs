@@ -19,7 +19,7 @@ namespace DataAccess.Data
         public DbSet<Concession> Concessions { get; set; }
         public DbSet<ConcessionOrder> ConcessionOrders { get; set; }
         public DbSet<ConcessionOrderDetail> ConcessionOrderDetails { get; set; }
-        public DbSet<Payment> payments { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
 
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)

@@ -9,6 +9,11 @@ namespace Models
         [Key]
         public int Id { get; set; }
 
+        public string? UserId { get; set; }
+        [ForeignKey("UserId")]
+        [ValidateNever]
+        public ApplicationUser? User { get; set; }
+
         public int? ConcessionOrderId { get; set; }
         [ForeignKey("ConcessionOrderId")]
         [ValidateNever]
@@ -18,6 +23,13 @@ namespace Models
         [ForeignKey("BookingId")]
         [ValidateNever]
         public Booking? Booking { get; set; }
+
+        [Required]
+        public string? Email { get; set; }
+        [Required]
+        public string? Name { get; set; }
+        [Required]
+        public string? PhoneNumber { get; set; }
 
         public double Amount { get; set; }
         public string? PaymentMethod { get; set; }

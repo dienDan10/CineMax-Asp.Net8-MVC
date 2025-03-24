@@ -14,16 +14,9 @@ namespace Models
         [ForeignKey("ShowTimeId")]
         public ShowTime ShowTime { get; set; }
 
-        public string UserId { get; set; }
-        [ValidateNever]
-        [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
-
         public DateTime BookingDate { get; set; }
 
         public double TotalAmount { get; set; }
-
-        public string? PaymentStatus { get; set; }
         public string? BookingStatus { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
