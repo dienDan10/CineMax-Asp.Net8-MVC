@@ -7,7 +7,9 @@
             fullName: $("#fullName").val().trim(),
             phone: $("#phoneNumber").val().trim(),
             email: $("#email").val().trim(),
-            paymentMethod: $("input[name='paymentMethod']:checked").val()
+            paymentMethod: $("input[name='paymentMethod']:checked").val(),
+            bookingId: $("#bookingId").val().trim(),
+            concessionOrderId: $("#concessionOrderId").val().trim()
         };
 
         // Validate inputs

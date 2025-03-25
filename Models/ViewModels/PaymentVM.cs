@@ -15,5 +15,7 @@ namespace Models.ViewModels
         public List<SelectedConcession> SelectedConcessions { get; set; }
         public int ShowTimeId { get; set; }
         public double TotalAmount { get; set; }
+        public int BookingId { get; set; }
+        public int ConcessionOrderId { get; set; }
     }
 }

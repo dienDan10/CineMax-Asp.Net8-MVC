@@ -11,6 +11,15 @@ namespace DataAccess.Repository
 
         }
 
+        public void UpdateStatus(int id, string status)
+        {
+            var payment = _context.Payments.FirstOrDefault(p => p.Id == id);
+            if (!string.IsNullOrEmpty(status))
+            {
+                payment.PaymentStatus = status;
+            }
+        }
+
         public void UpdateStripePaymentID(int id, string sessionId, string paymentIntentId)
         {
             var payment = _context.Payments.FirstOrDefault(p => p.Id == id);

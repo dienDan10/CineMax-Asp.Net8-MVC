@@ -1,0 +1,182 @@
+﻿@model BookingConfirmationVM
+
+
+    <style>
+        .confirmation-header {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .barcode-container {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .ticket-section {
+            border-left: 4px solid #0d6efd;
+        }
+        .concession-item {
+            border-bottom: 1px dashed #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .seat-badge {
+            font-size: 0.9rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .total-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+        }
+    </style>
+
+
+    <div class="container py-5">
+        <!-- Confirmation Header -->
+        <div class="confirmation-header p-4 mb-4 text-center">
+            <h1 class="text-success"><i class="fas fa-check-circle"></i> Booking Confirmed!</h1>
+            <p class="lead mb-0">Thank you for your booking, @Model.CustomerName!</p>
+            <p class="text-muted">Confirmation @Model.PaymentId</p>
+        </div>
+
+        <div class="row">
+            <!-- Left Column - Movie & Show Details -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-film"></i> Movie Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <!-- Movie poster placeholder -->
+                                <div class="bg-light" style="height: 150px; width: 100%;">
+                                    <img src="@Model.MoviePosterUrl" alt="@Model.MovieName poster" class="img-fluid" />"
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h2>@Model.MovieName</h2>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <p><strong><i class="fas fa-theater-masks"></i> Theater:</strong> @Model.TheaterName</p>
+                                        <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> @Model.TheaterLocation</p>
+                                        <p><strong><i class="fas fa-door-open"></i> Screen:</strong> @Model.ScreenName</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong><i class="far fa-calendar-alt"></i> Date:</strong> @Model.ShowDate.ToString("dd/MM/yyyy")</p>
+                                        <p><strong><i class="far fa-clock"></i> Time:</strong> @Model.ShowTime.ToString(@"hh\:mm")</p>
+                                        <p><strong><i class="fas fa-ticket-alt"></i> Seats:</strong>
+                                            @foreach (var seat in Model.SelectedSeats)
+                                                {
+												    <span class="badge bg-secondary seat-badge">@(seat.Row + seat.Number)</span>
+											    }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concessions Section -->
+               @if (Model.SelectedConcessions.Count > 0)
+                {
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-popcorn"></i> Concessions</h3>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var item in Model.SelectedConcessions)
+                        { 
+                            <div class="concession-item">
+                                <div class="d-flex justify-content-between w-100">
+                                    <span>@item.Name x @item.Quantity</span>
+                                    <span>@item.Subtotal.ToString("N0") đ</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+
+            <!-- Right Column - Payment & Barcode -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-receipt"></i> Payment Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p><strong>Payment Method:</strong> @(Model.PaymentMethod == Constant.PaymentMethod_VnPay ? "VNPay" : "Credit Card (ATM)")</p>
+                            <p><strong>Payment Date:</strong> @Model.PaymentDate.ToString("dd/MM/yyyy HH:mm")</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">@Model.Status</span></p>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <h5>Order Summary</h5>
+                            <table class="table table-sm">
+                                <tbody>
+                                    @foreach (var seat in Model.SelectedSeats)
+									{
+										<tr>
+											<td>Seat @(seat.Row + seat.Number)</td>
+											<td class="text-end">@seat.Price.ToString("N0") đ</td>
+										</tr>
+									}
+                                    @foreach (var item in Model.SelectedConcessions)
+                                    {
+                                        <tr>
+                                            <td>@item.Name x @item.Quantity</td>
+                                            <td class="text-end">@item.Subtotal.ToString("N0") đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total</th>
+                                        <th class="text-end">@Model.Amount.ToString("N0") đ</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barcode Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-barcode"></i> Your Ticket</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="barcode-container mb-3">
+                            <!-- Barcode image placeholder -->
+                            <div class="bg-light" style="height: 100px; width: 100%; margin-bottom: 10px;">
+                                <img src="data:image/png;base64,@Convert.ToBase64String(Model.BarcodeImage)" 
+                                        alt="Ticket Barcode: @Model.BarcodeText" class="barcode-img"/>
+                            </div>
+                            <p class="text-muted small">@Model.BarcodeText</p>
+                        </div>
+                        <button class="btn btn-outline-primary me-2"><i class="fas fa-download"></i> Download</button>
+                        <button class="btn btn-outline-primary"><i class="fas fa-envelope"></i> Email</button>
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fas fa-user"></i> Customer Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> @Model.CustomerName</p>
+                        <p><strong>Email:</strong> @Model.CustomerEmail</p>
+                        <p><strong>Phone:</strong> @Model.CustomerPhone</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

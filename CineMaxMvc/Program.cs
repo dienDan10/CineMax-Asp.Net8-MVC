@@ -46,9 +46,11 @@ builder.Services.AddAuthentication().AddGoogle(options =>
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<StripeService>();
+builder.Services.AddScoped<BarcodeService>();
 
 var app = builder.Build();
 

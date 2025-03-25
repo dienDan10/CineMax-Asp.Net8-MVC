@@ -54,5 +54,11 @@ namespace CineMaxMvc.Services
             var service = new SessionService();
             return await service.CreateAsync(options);
         }
+
+        public async Task<Session> GetCheckoutSession(string sessionId)
+        {
+            var service = new SessionService();
+            return await service.GetAsync(sessionId);
+        }
     }
 }
