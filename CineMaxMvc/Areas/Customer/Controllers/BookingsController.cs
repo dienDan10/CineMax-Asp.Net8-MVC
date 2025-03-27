@@ -1,5 +1,12 @@
 ﻿using CineMaxMvc.Services;
 using DataAccess.Repository.IRepository;
+using iText.IO.Font;
+using iText.IO.Image;
+using iText.Kernel.Font;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Models;
@@ -118,6 +125,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
 
             var selectedSeatsJson = form["selectedSeats"];
             var selectedConcessionsJson = form["selectedConcessions"];
+
 
             List<SelectedSeat> selectedSeats = new();
             List<SelectedConcession> selectedConcessions = new();
@@ -469,7 +477,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
         }
 
         [HttpGet]
-        IActionResult StripeReturn(int paymentId)
+        public IActionResult StripeReturn(int paymentId)
         {
             // get the payment
             var payment = _unitOfWork.Payment.GetOne(p => p.Id == paymentId, "Booking");
@@ -598,6 +606,78 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             booking.LastUpdatedAt = DateTime.Now;
             _unitOfWork.Booking.Update(booking);
             _unitOfWork.Save();
+        }
+
+        public IActionResult DownloadTicket(int paymentId)
+        {
+            var payment = _unitOfWork.Payment.GetOne(p => p.Id == paymentId);
+            if (payment == null) return NotFound();
+
+            // get the booking and concession order
+            var booking = _unitOfWork.Booking.GetOne(b => b.Id == payment.BookingId);
+            var concessionOrder = _unitOfWork.ConcessionOrder.GetOne(c => c.Id == payment.ConcessionOrderId);
+
+            // get the showtime
+            var showTime = _unitOfWork.ShowTime.GetOne(s => s.Id == booking.ShowTimeId, includeProperties: "Movie,Screen");
+
+            // get the theater
+            var theater = _unitOfWork.Theater.GetOne(t => t.Id == showTime.Screen.TheaterId);
+
+            // get the selected seats
+            var bookingDetails = _unitOfWork.BookingDetail.GetAll(b => b.BookingId == booking.Id);
+
+            // create the pdf file
+            using (MemoryStream ms = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(ms);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+                // create font
+                string fontPath = Path.Combine("wwwroot", "fonts", "Roboto-Regular.ttf");
+                PdfFont vietnameseFont = PdfFontFactory.CreateFont(fontPath, PdfEncodings.IDENTITY_H);
+
+                // title
+                document.Add(new Paragraph("CineMax Movie Ticket")
+                                       .SetTextAlignment(TextAlignment.CENTER)
+                                       .SetFont(vietnameseFont)
+                                        .SetFontSize(20));
+                document.Add(new Paragraph($"Booking ID: TICKET-{paymentId}-{payment.PaymentDate:yyyyMMddHHmmss}").SetFontSize(12));
+
+                // movie details
+                document.Add(new Paragraph($"Movie: {showTime.Movie.Title}")
+                    .SetFontSize(14)
+                    .SetFont(vietnameseFont));
+                document.Add(new Paragraph($"Theater: {theater.Name}").SetFontSize(12).SetFont(vietnameseFont));
+                document.Add(new Paragraph($"Screen: {showTime.Screen.Name}").SetFontSize(12));
+                document.Add(new Paragraph($"Showtime: {showTime.Date:dd/MM/yyyy} {showTime.StartTime:hh\\:mm}").SetFontSize(12));
+
+                // seats
+                string seats = string.Join(", ", bookingDetails.Select(b => b.SeatName));
+                document.Add(new Paragraph($"Seats: {seats}").SetFontSize(12));
+
+                // concessions
+                if (concessionOrder != null)
+                {
+                    var concessionDetails = _unitOfWork.ConcessionOrderDetail.GetAll(c => c.ConcessionOrderId == concessionOrder.Id, "Concession");
+                    string concessions = string.Join(", ", concessionDetails.Select(c => $"{c.Concession.Name} x {c.Quantity}"));
+                    document.Add(new Paragraph($"Concessions: {concessions}").SetFontSize(12));
+                }
+
+                // payment info
+                document.Add(new Paragraph($"Amount Paid: {payment.Amount:N0} đ").SetFontSize(12));
+                document.Add(new Paragraph($"Payment Method: {payment.PaymentMethod}").SetFontSize(12));
+                document.Add(new Paragraph($"Status: {payment.PaymentStatus}").SetFontSize(12));
+
+                // barcode image
+                // GENERATE BARCODE
+                string barcodeText = $"TICKET-{payment.Id}-{payment.PaymentDate:yyyyMMddHHmmss}";
+                byte[] barcodeBytes = _barcodeService.GenerateBarcodeImage(barcodeText);
+                Image barcodeImage = new Image(ImageDataFactory.Create(barcodeBytes));
+                document.Add(barcodeImage);
+
+                document.Close();
+                return File(ms.ToArray(), "application/pdf", $"CineMax_Ticket_{paymentId}.pdf");
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ namespace CineMaxMvc.Services
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                        UnitAmount = (long)seat.Price, // in cents
+                        UnitAmount = (long)seat.Price,
                         Currency = "vnd",
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
