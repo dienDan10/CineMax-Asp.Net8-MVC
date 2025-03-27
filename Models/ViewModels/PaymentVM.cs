@@ -17,5 +17,6 @@ namespace Models.ViewModels
         public double TotalAmount { get; set; }
         public int BookingId { get; set; }
         public int ConcessionOrderId { get; set; }
+        public DateTime BookingCreatedDate { get; set; }
     }
 }

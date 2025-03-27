@@ -1,10 +1,12 @@
 ﻿using CineMaxMvc.Services;
 using DataAccess.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Models;
 using Models.Request;
 using Models.ViewModels;
 using Newtonsoft.Json;
+using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using Utility;
@@ -20,13 +22,15 @@ namespace CineMaxMvc.Areas.Customer.Controllers
         private readonly StripeService _stripeService;
         private readonly BarcodeService _barcodeService;
         private readonly EmailSender _emailSender;
+        private readonly VNPaySettings _vnPaySettings;
 
-        public BookingsController(IUnitOfWork unitOfWork, StripeService stripeService, BarcodeService barcodeService, EmailSender emailSender)
+        public BookingsController(IUnitOfWork unitOfWork, StripeService stripeService, BarcodeService barcodeService, EmailSender emailSender, IOptions<VNPaySettings> vnPayOptions)
         {
             _unitOfWork = unitOfWork;
             _stripeService = stripeService;
             _barcodeService = barcodeService;
             _emailSender = emailSender;
+            _vnPaySettings = vnPayOptions.Value;
         }
 
         public IActionResult SelectSeat(int? showtimeId)
@@ -61,6 +65,12 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 Rows = GetRowData(seats, bookedSeatIds, showtime.Screen.Rows, showtime.Screen.Columns, showtime.TicketPrice),
                 Concessions = _unitOfWork.Concession.GetAll().ToList()
             };
+
+            // remove booking data if exists
+            if (HttpContext.Session.GetInt32(Constant.BookingId) != null)
+            {
+                HttpContext.Session.Remove(Constant.BookingId);
+            }
 
             return View(viewModel);
         }
@@ -158,6 +168,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
 
             HttpContext.Session.SetString(Constant.SeatSelectionData, JsonConvert.SerializeObject(model));
 
+
             return RedirectToAction(nameof(PaymentSelection));
         }
 
@@ -178,36 +189,46 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             var booking = new Booking();
             var concessionOrder = new ConcessionOrder();
 
-            if (selectedSeats != null && selectedSeats.Count > 0)
+            if (HttpContext.Session.GetInt32(Constant.BookingId) != null)
             {
-                booking = new Booking
+                booking = _unitOfWork.Booking.GetOne(b => b.Id == HttpContext.Session.GetInt32(Constant.BookingId).Value);
+            }
+            else
+            {
+                if (selectedSeats != null && selectedSeats.Count > 0)
                 {
-                    ShowTimeId = seatSelection.ShowTimeId,
-                    TotalAmount = selectedSeats.Aggregate(0.0, (total, seat) => total + seat.Price),
-                    BookingStatus = Constant.BookingStatus_Pending,
-                    IsActive = false,
-                    BookingDate = DateTime.Now,
-                    CreatedAt = DateTime.Now,
-                    LastUpdatedAt = DateTime.Now
-                };
-
-                _unitOfWork.Booking.Add(booking);
-                _unitOfWork.Save();
-
-                foreach (var seat in selectedSeats)
-                {
-                    var bookingSeat = new BookingDetail
+                    booking = new Booking
                     {
-                        BookingId = booking.Id,
-                        SeatId = seat.Id,
-                        SeatName = $"{seat.Row}{seat.Number}",
-                        TicketPrice = seat.Price,
+                        ShowTimeId = seatSelection.ShowTimeId,
+                        TotalAmount = selectedSeats.Aggregate(0.0, (total, seat) => total + seat.Price),
+                        BookingStatus = Constant.BookingStatus_Pending,
+                        IsActive = false,
+                        BookingDate = DateTime.Now,
                         CreatedAt = DateTime.Now,
                         LastUpdatedAt = DateTime.Now
                     };
 
-                    _unitOfWork.BookingDetail.Add(bookingSeat);
+                    _unitOfWork.Booking.Add(booking);
                     _unitOfWork.Save();
+
+                    // add booking id to session
+                    HttpContext.Session.SetInt32(Constant.BookingId, booking.Id);
+
+                    foreach (var seat in selectedSeats)
+                    {
+                        var bookingSeat = new BookingDetail
+                        {
+                            BookingId = booking.Id,
+                            SeatId = seat.Id,
+                            SeatName = $"{seat.Row}{seat.Number}",
+                            TicketPrice = seat.Price,
+                            CreatedAt = DateTime.Now,
+                            LastUpdatedAt = DateTime.Now
+                        };
+
+                        _unitOfWork.BookingDetail.Add(bookingSeat);
+                        _unitOfWork.Save();
+                    }
                 }
             }
 
@@ -250,7 +271,8 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 ShowTimeId = seatSelection.ShowTimeId,
                 TotalAmount = seatSelection.TotalAmount,
                 BookingId = booking.Id,
-                ConcessionOrderId = concessionOrder.Id
+                ConcessionOrderId = concessionOrder.Id,
+                BookingCreatedDate = booking.CreatedAt
             };
 
             return View(paymentVM);
@@ -259,7 +281,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
         [HttpPost]
         public IActionResult ProcessPayment(PaymentVM model)
         {
-
+            // GET THE SEAT SELECTION DATA FROM SESSION
             var seatSelectionJson = HttpContext.Session.GetString(Constant.SeatSelectionData);
 
             if (string.IsNullOrEmpty(seatSelectionJson))
@@ -269,18 +291,17 @@ namespace CineMaxMvc.Areas.Customer.Controllers
 
             var seatSelection = JsonConvert.DeserializeObject<SeatSelectionRequest>(seatSelectionJson);
 
+            // VALIDATE USER INFORMATION
             if (!ModelState.IsValid)
             {
                 model.SelectedSeats = seatSelection.SelectedSeats;
                 model.SelectedConcessions = seatSelection.SelectedConcessions;
-                model.ShowTimeId = seatSelection.ShowTimeId;
                 model.TotalAmount = seatSelection.TotalAmount;
                 return View(nameof(PaymentSelection), model);
             }
 
             var bookingId = model.BookingId;
             var concessionOrderId = model.ConcessionOrderId;
-
 
             // sAVE PAYMENT TO DB
             string userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -320,34 +341,135 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             _unitOfWork.Save();
 
             // IMPLEMENT PAYMENT GATEWAY FOR NORMAL USERS
-            var domain = "http://localhost:5030/";
-            var successUrl = $"{domain}Customer/Bookings/BookingConfirmation?paymentId={payment.Id}";
-            var cancelUrl = $"{domain}Customer/Bookings/SelectSeat?showtimeId={seatSelection.ShowTimeId}";
+
             var selectedSeats = seatSelection.SelectedSeats;
             var selectedConcessions = seatSelection.SelectedConcessions;
 
             if (model.PaymentMethod == Constant.PaymentMethod_VnPay)
             {
                 // IMPLEMENT VNPAY PAYMENT GATEWAY
+
+                // Get user's IP address
+                string ipAddress = "127.0.0.1";
+                // Generate payment URL
+                string paymentUrl = VNPayHelper.CreatePaymentUrl(
+                    amount: seatSelection.TotalAmount,
+                    orderInfo: $"Movie Ticket Booking #{payment.Id}",
+                    ipAddress: ipAddress,
+                    returnUrl: $"{_vnPaySettings.ReturnUrl}?paymentId={payment.Id}",
+                    tmnCode: _vnPaySettings.TmnCode,
+                    hashSecret: _vnPaySettings.HashSecret,
+                    baseUrl: _vnPaySettings.BaseUrl
+                );
+
+                // Update payment with VNPay reference
+                _unitOfWork.Payment.Update(payment);
+                _unitOfWork.Save();
+
+                // update created time of booking to get user 5 more minutes
+                IncreaseBookingReserveTime(bookingId);
+
+                // Redirect to VNPay
+                return Json(new { success = true, redirectUrl = paymentUrl });
             }
             else if (model.PaymentMethod == Constant.PaymentMethod_Atm)
             {
                 // IMPLEMENT STRIPE PAYMENT GATEWAY
+                var domain = "http://localhost:5030/";
+                var successUrl = $"{domain}Customer/Bookings/StripeReturn?paymentId={payment.Id}";
+                var cancelUrl = $"{domain}Customer/Bookings/SelectSeat?showtimeId={seatSelection.ShowTimeId}";
                 var session = _stripeService.CreateCheckoutSession(selectedSeats, selectedConcessions, successUrl, cancelUrl)
                                             .GetAwaiter()
                                             .GetResult();
                 _unitOfWork.Payment.UpdateStripePaymentID(payment.Id, session.Id, session.PaymentIntentId);
                 _unitOfWork.Save();
 
+                // update created time of booking to get user 5 more minutes
+                IncreaseBookingReserveTime(bookingId);
                 return Json(new { success = true, redirectUrl = session.Url });
             }
-
-
 
             return new StatusCodeResult(303);
         }
 
-        public IActionResult BookingConfirmation(int paymentId)
+        [HttpGet]
+        public IActionResult VNPayReturn(int paymentId)
+        {
+            // Get payment from DB
+            var payment = _unitOfWork.Payment.GetOne(p => p.Id == paymentId, "Booking");
+            if (payment == null) return NotFound();
+
+            // Extract VNPay parameters from request
+            var vnpayResponse = Request.Query;
+            var vnpParams = new SortedDictionary<string, string>();
+            foreach (var key in vnpayResponse.Keys)
+            {
+                if (key.StartsWith("vnp_"))
+                {
+                    vnpParams.Add(key, vnpayResponse[key]);
+                }
+            }
+
+            // Verify hash
+            string secureHash = vnpParams["vnp_SecureHash"];
+            vnpParams.Remove("vnp_SecureHash");
+
+            string signData = string.Join("&", vnpParams.Select(kvp => $"{WebUtility.UrlEncode(kvp.Key)}={WebUtility.UrlEncode(kvp.Value)}"));
+            string checkSum = VNPayHelper.HmacSha512(_vnPaySettings.HashSecret, signData);
+
+            if (!secureHash.Equals(checkSum, StringComparison.InvariantCultureIgnoreCase))
+            {
+                _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Success);
+                _unitOfWork.Save();
+
+                TempData["error"] = "Payment verification failed.";
+                return RedirectToAction(nameof(SelectSeat), new { showtimeId = payment.Booking?.ShowTimeId ?? 0 });
+            }
+
+
+            if (vnpParams["vnp_ResponseCode"] == "00" && vnpParams["vnp_TransactionStatus"] == "00") // Success
+            {
+                // Update payment status
+                _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Success);
+
+                // Activate booking/concession
+                if (payment.BookingId != null)
+                {
+                    var booking = _unitOfWork.Booking.GetOne(b => b.Id == payment.BookingId.Value);
+                    if (booking != null)
+                    {
+                        booking.BookingStatus = Constant.BookingStatus_Success;
+                        booking.IsActive = true;
+                        _unitOfWork.Booking.Update(booking);
+                    }
+                }
+
+                if (payment.ConcessionOrderId != null)
+                {
+                    var concessionOrder = _unitOfWork.ConcessionOrder.GetOne(c => c.Id == payment.ConcessionOrderId.Value);
+                    if (concessionOrder != null)
+                    {
+                        concessionOrder.IsActive = true;
+                        _unitOfWork.ConcessionOrder.Update(concessionOrder);
+                    }
+                }
+
+                _unitOfWork.Save();
+
+                return RedirectToAction(nameof(BookingConfirmation), new { paymentId = payment.Id });
+            }
+
+
+            // If failed, redirect to failure page
+            _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Success);
+            _unitOfWork.Save();
+
+            TempData["error"] = "Payment failed. Please try again.";
+            return RedirectToAction(nameof(SelectSeat), new { showtimeId = payment.Booking.ShowTimeId });
+        }
+
+        [HttpGet]
+        IActionResult StripeReturn(int paymentId)
         {
             // get the payment
             var payment = _unitOfWork.Payment.GetOne(p => p.Id == paymentId, "Booking");
@@ -359,7 +481,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             }
 
             // get the session from stripe and check the payment status
-            if (payment.PaymentMethod == Constant.PaymentMethod_Atm && payment.PaymentStatus != Constant.PaymentStatus_Success)
+            if (payment.PaymentStatus != Constant.PaymentStatus_Success)
             {
                 var session = _stripeService.GetCheckoutSession(payment.SessionId).GetAwaiter().GetResult();
                 if (session.PaymentStatus == "paid")
@@ -396,26 +518,15 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 }
             }
 
-            // update booking and concession order status
-            if (payment.PaymentStatus == Constant.PaymentStatus_Success)
-            {
-                if (payment.BookingId != null)
-                {
-                    var booking = _unitOfWork.Booking.GetOne(b => b.Id == payment.BookingId);
-                    booking.BookingStatus = Constant.BookingStatus_Success;
-                    booking.IsActive = true;
-                    _unitOfWork.Booking.Update(booking);
-                }
-
-                if (payment.ConcessionOrderId != null)
-                {
-                    var concessionOrder = _unitOfWork.ConcessionOrder.GetOne(c => c.Id == payment.ConcessionOrderId);
-                    concessionOrder.IsActive = true;
-                    _unitOfWork.ConcessionOrder.Update(concessionOrder);
-                }
-            }
-
             _unitOfWork.Save();
+
+            return RedirectToAction(nameof(BookingConfirmation), new { paymentId = payment.Id });
+        }
+
+        public IActionResult BookingConfirmation(int paymentId)
+        {
+            // get the payment
+            var payment = _unitOfWork.Payment.GetOne(p => p.Id == paymentId, "Booking");
 
             // GENERATE BARCODE
             string barcodeText = $"TICKET-{payment.Id}-{payment.PaymentDate:yyyyMMddHHmmss}";
@@ -477,6 +588,16 @@ namespace CineMaxMvc.Areas.Customer.Controllers
 
 
             return View(viewModel);
+        }
+
+        public void IncreaseBookingReserveTime(int bookingId)
+        {
+            if (bookingId == 0) return;
+            var booking = _unitOfWork.Booking.GetOne(b => b.Id == bookingId);
+            booking.CreatedAt = DateTime.Now;
+            booking.LastUpdatedAt = DateTime.Now;
+            _unitOfWork.Booking.Update(booking);
+            _unitOfWork.Save();
         }
     }
 }

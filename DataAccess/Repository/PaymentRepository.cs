@@ -18,6 +18,7 @@ namespace DataAccess.Repository
             {
                 payment.PaymentStatus = status;
             }
+            payment.LastUpdatedAt = DateTime.Now;
         }
 
         public void UpdateStripePaymentID(int id, string sessionId, string paymentIntentId)
@@ -31,6 +32,7 @@ namespace DataAccess.Repository
             {
                 payment.PaymentIntentId = paymentIntentId;
             }
+            payment.LastUpdatedAt = DateTime.Now;
         }
     }
 }

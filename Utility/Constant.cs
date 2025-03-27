@@ -18,5 +18,6 @@
         public const string PaymentMethod_Atm = "ATM";
 
         public const string SeatSelectionData = "SeatSelectionData";
+        public const string BookingId = "BookingId";
     }
 }

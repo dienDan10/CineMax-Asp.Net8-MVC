@@ -9,7 +9,8 @@
             email: $("#email").val().trim(),
             paymentMethod: $("input[name='paymentMethod']:checked").val(),
             bookingId: $("#bookingId").val().trim(),
-            concessionOrderId: $("#concessionOrderId").val().trim()
+            concessionOrderId: $("#concessionOrderId").val().trim(),
+            showtimeId: $("#showtimeId").val().trim(),
         };
 
         // Validate inputs
@@ -70,6 +71,35 @@
     $("#phoneNumber").on("input", function () {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
+
+    // Get booking creation time from hidden input
+    const bookingCreatedDate = new Date($("#bookingCreatedDate").val());
+    const expirationTime = new Date(bookingCreatedDate.getTime() + 5 * 60 * 1000); // 5 minutes after booking
+
+    function updateCountdown() {
+        const now = new Date();
+        const timeLeft = expirationTime - now;
+
+        if (timeLeft <= 0) {
+            $("#countdownTimer").text("00:00");
+            $("#proceedPayment").prop("disabled", true);
+            toastr.error("Your seat reservation time is expired, please select the seats again.");
+            clearInterval(countDownInterval);
+
+            setTimeout(() => {
+                const showtimeId = $("#showtimeId").val().trim();
+                window.location.href = `/Customer/Bookings/SelectSeat?showtimeId=${showtimeId}`; // Redirect to seat selection
+            }, 3000);
+        } else {
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            $("#countdownTimer").text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+        }
+    }
+
+    // Start countdown timer
+    updateCountdown();
+    const countDownInterval = setInterval(updateCountdown, 1000);
 
     // Initialize Toastr with custom settings (optional)
     toastr.options = {

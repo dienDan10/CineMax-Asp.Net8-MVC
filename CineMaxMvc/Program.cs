@@ -44,6 +44,7 @@ builder.Services.AddAuthentication().AddGoogle(options =>
 });
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<VNPaySettings>(builder.Configuration.GetSection("VNPay"));
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<EmailSender>();
