@@ -34,10 +34,36 @@
 
     // When user adds a time
     $("#addTimeBtn").on("click", function () {
-        let selectedDate = $("#showDate").val();
-        let selectedTime = $("#showTime").val();
+        const selectedDate = $("#showDate").val();
+        const selectedTime = $("#showTime").val();
+        const movieDuration = $("#movieSelect option:selected").data("duration");
 
         if (!selectedDate || !selectedTime) return;
+
+        if (isNaN(movieDuration)) {
+            toastr.warning("Please select a movie first!");
+            return;
+        }
+
+        let newTimeInMinutes = convertTimeToMinutes(selectedTime);
+        // Check for conflicts
+        if (showtimes[selectedDate]) {
+            for (let existingTime of showtimes[selectedDate]) {
+                let existingTimeInMinutes = convertTimeToMinutes(existingTime);
+
+                // Show time start before a movie ends
+                if (newTimeInMinutes >= existingTimeInMinutes && newTimeInMinutes < existingTimeInMinutes + movieDuration) {
+                    toastr.error(`The time ${selectedTime} conflicts with an existing showtime.`);
+                    return;
+                }
+
+                // Showtime ends after a movie starts
+                if (newTimeInMinutes <= existingTimeInMinutes && newTimeInMinutes + movieDuration > existingTimeInMinutes) {
+                    toastr.error(`The time ${selectedTime} conflicts with an existing showtime.`);
+                    return;
+                }
+            }
+        }
 
         // Initialize the array if the date is not in the object
         if (!showtimes[selectedDate]) {
@@ -54,6 +80,7 @@
                     <td>${selectedDate}</td>
                     <td>${selectedTime}</td>
                     <td><span class="badge bg-success">Scheduled</span></td>
+                    <td><button class="btn btn-sm btn-danger remove-time"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>
             `);
 
@@ -61,6 +88,30 @@
 
         // Once at least one time is added, disable date selection
         $("#showDate").prop("disabled", true);
+    });
+
+    function convertTimeToMinutes(timeStr) {
+        let [hours, minutes] = timeStr.split(":").map(Number);
+        return hours * 60 + minutes;
+    }
+
+    // Remove time from the list
+    $(document).on("click", ".remove-time", function () {
+        let row = $(this).closest("tr");
+        let selectedDate = row.data("date");
+        let selectedTime = row.data("time");
+
+        // Remove from showtimes object
+        showtimes[selectedDate] = showtimes[selectedDate].filter(time => time !== selectedTime);
+
+        // If no more times exist for this date, allow date selection again
+        if (showtimes[selectedDate].length === 0) {
+            delete showtimes[selectedDate];
+            $("#showDate").prop("disabled", false);
+        }
+
+        // Remove the row from the table
+        row.remove();
     });
 
     // Form submission
@@ -80,6 +131,11 @@
             toastr.warning("Please input a valid ticket price");
         }
 
+        if (Object.keys(showtimes).length === 0) {
+            toastr.warning("Please add at least one showtime before submitting.");
+            return;
+        }
+
         let formattedData = Object.keys(showtimes).map(date => ({
             date: date,
             times: showtimes[date]
@@ -94,7 +150,7 @@
             showtimes: formattedData
         };
 
-        console.log(requestData); // Debugging: Check data before sending
+        console.log(requestData); // Check data before sending
 
         $.ajax({
             url: "/Admin/Screen/AddShowtimes",

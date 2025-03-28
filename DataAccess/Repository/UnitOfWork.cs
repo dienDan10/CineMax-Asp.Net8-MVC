@@ -18,6 +18,7 @@ namespace DataAccess.Repository
         public IConcessionOrderRepository ConcessionOrder { get; private set; }
         public IConcessionOrderDetailRepository ConcessionOrderDetail { get; private set; }
         public IPaymentRepository Payment { get; private set; }
+        public IApplicationUserRepository ApplicationUser { get; private set; }
 
 
         public UnitOfWork(ApplicationDBContext db)
@@ -35,6 +36,7 @@ namespace DataAccess.Repository
             ConcessionOrder = new ConcessionOrderRepository(_db);
             ConcessionOrderDetail = new ConcessionOrderDetailRepository(_db);
             Payment = new PaymentRepository(_db);
+            ApplicationUser = new ApplicationUserRepository(_db);
         }
 
         public void Save()

@@ -272,6 +272,7 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 }
             }
 
+
             var paymentVM = new PaymentVM
             {
                 SelectedSeats = seatSelection.SelectedSeats,
@@ -283,6 +284,15 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 BookingCreatedDate = booking.CreatedAt
             };
 
+            // check if user is logged in, get user info
+            string userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId != null)
+            {
+                var user = _unitOfWork.ApplicationUser.GetOne(u => u.Id == userId);
+                paymentVM.FullName = user.Name;
+                paymentVM.Email = user.Email;
+                paymentVM.Phone = user.PhoneNumber;
+            }
             return View(paymentVM);
         }
 
@@ -311,9 +321,9 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             var bookingId = model.BookingId;
             var concessionOrderId = model.ConcessionOrderId;
 
-            // sAVE PAYMENT TO DB
             string userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // sAVE PAYMENT TO DB
             var payment = new Payment
             {
                 UserId = userId,

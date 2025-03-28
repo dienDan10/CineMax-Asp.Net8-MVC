@@ -38,6 +38,15 @@
                             </a>
                         </li>
 
+                        @if (User.Identity.IsAuthenticated && User.IsInRole(Constant.Role_Customer))
+						{
+							<li class="nav-item">
+								<a class="nav-link px-3" asp-area="Customer" asp-controller="Transactions" asp-action="Index">
+									<i class="fas fa-ticket-alt me-1"></i> My Bookings
+								</a>
+							</li>
+						}
+
                         @if (User.IsInRole(Constant.Role_Admin))
                         {
                                 <li class="nav-item dropdown">
