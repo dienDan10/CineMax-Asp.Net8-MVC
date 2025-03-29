@@ -1,0 +1,49 @@
+﻿<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4">Ticket Check-in</h2>
+
+        <!-- Ticket Input Form -->
+        <div class="mb-3">
+            <label for="ticketNumber" class="form-label">Enter Ticket Number</label>
+            <div class="input-group">
+                <input type="text" id="ticketNumber" class="form-control" placeholder="Enter ticket number..." required>
+                <button class="btn btn-primary" id="checkTicketBtn">Check Ticket</button>
+            </div>
+        </div>
+
+        <!-- Ticket Details Section -->
+        <div id="ticketDetailsContainer"></div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#checkTicketBtn").click(function() {
+                let ticketNumber = $("#ticketNumber").val().trim();
+                if (ticketNumber === "") {
+                    toastr.error("Please enter a ticket number.");
+                    return;
+                }
+
+                $("#ticketDetailsContainer").html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+
+                $.get("/Employee/CheckIn/GetTicketDetails", { ticketNumber: ticketNumber }, function(response) {
+                    $("#ticketDetailsContainer").html(response);
+                });
+            });
+
+            $(document).on("click", "#checkInBtn", function() {
+                let ticketNumber = $("#barcodeText").data("ticket-number");
+
+                $.post("/Employee/CheckIn/MarkAsCheckedIn", { ticketNumber : ticketNumber }, function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $("#ticketDetailsContainer").load("/Employee/CheckIn/GetTicketDetails?ticketNumber=" + ticketNumber);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            });
+        });
+    </script>
+}

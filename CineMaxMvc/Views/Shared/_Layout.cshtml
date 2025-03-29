@@ -47,6 +47,15 @@
 							</li>
 						}
 
+                        @if (User.Identity.IsAuthenticated && (User.IsInRole(Constant.Role_Admin) || User.IsInRole(Constant.Role_Employee)))
+						{
+							<li class="nav-item">
+								<a class="nav-link px-3" asp-area="Employee" asp-controller="CheckIn" asp-action="Index">
+									<i class="fas fa-stopwatch me-1"></i> Check in
+								</a>
+							</li>
+						}
+
                         @if (User.IsInRole(Constant.Role_Admin))
                         {
                                 <li class="nav-item dropdown">

@@ -1,0 +1,123 @@
+﻿@model BookingConfirmationVM
+
+
+<style>
+    .ticket-container {
+        max-width: 600px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        border: 2px dashed #dee2e6;
+    }
+    .ticket-header {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #0d6efd;
+    }
+    .ticket-section {
+        padding: 15px 0;
+        border-bottom: 1px dashed #dee2e6;
+    }
+    .seat-badge {
+        background: #0d6efd;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        margin-right: 5px;
+    }
+    .barcode-container {
+        text-align: center;
+        padding-top: 15px;
+    }
+</style>
+
+@if (Model != null)
+{
+    
+    <div class="ticket-container">
+        <!-- Header -->
+        <div class="ticket-header">
+            🎟️ Transaction Details
+        </div>
+
+        <!-- Movie Details -->
+        <div class="ticket-section">
+            <h5><i class="fas fa-film"></i> @Model.MovieName</h5>
+            <p><i class="fas fa-theater-masks"></i> @Model.TheaterName</p>
+            <p><i class="fas fa-map-marker-alt"></i> @Model.TheaterLocation</p>
+            <p><i class="fas fa-door-open"></i> Screen: @Model.ScreenName</p>
+            <p><i class="far fa-calendar-alt"></i> @Model.ShowDate.ToString("dd/MM/yyyy") at @Model.ShowTime.ToString(@"hh\:mm")</p>
+        </div>
+
+        <!-- Seat Information -->
+        <div class="ticket-section">
+            <h5><i class="fas fa-chair"></i> Seats</h5>
+            @foreach (var seat in Model.SelectedSeats)
+            {
+                <span class="seat-badge">@(seat.Row + seat.Number)</span>
+            }
+        </div>
+
+        <!-- Concessions -->
+        @if (Model.SelectedConcessions.Count > 0)
+        {
+            <div class="ticket-section">
+                <h5><i class="fas fa-popcorn"></i> Concessions</h5>
+                @foreach (var item in Model.SelectedConcessions)
+                {
+                    <p>@item.Name x @item.Quantity - <strong>@item.Subtotal.ToString("N0") đ</strong></p>
+                }
+            </div>
+        }
+
+        <!-- Payment Summary -->
+        <div class="ticket-section">
+            <h5><i class="fas fa-receipt"></i> Payment Summary</h5>
+            <p><strong>Payment Method:</strong> @(Model.PaymentMethod == Constant.PaymentMethod_VnPay ? "VNPay" : "Credit Card (ATM)")</p>
+            <p><strong>Paid On:</strong> @Model.PaymentDate.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Status:</strong> <span class="badge bg-success">@Model.Status</span></p>
+            <p class="text-end"><strong>Total Paid: @Model.Amount.ToString("N0") đ</strong></p>
+        </div>
+
+        <!-- Barcode -->
+        <div class="barcode-container">
+            <img src="data:image/png;base64,@Convert.ToBase64String(Model.BarcodeImage)" alt="Ticket Barcode" class="img-fluid"/>
+            <p class="text-muted small" data-ticket-number="@Model.BarcodeText" id="barcodeText" >@Model.BarcodeText</p>
+            @if (User.IsInRole(Constant.Role_Customer))
+            {
+                <a class="btn btn-primary" asp-area="Customer" asp-controller="Bookings" asp-action="DownloadTicket" asp-route-paymentId="@Model.PaymentId">
+                    <i class="fas fa-download"></i> Download Ticket
+                </a>
+            }
+        </div>
+
+            <!-- Check-in Button -->
+        @if (User.IsInRole(Constant.Role_Employee) || User.IsInRole(Constant.Role_Admin))
+        {
+            if (Model.BookingStatus == Constant.BookingStatus_CheckedIn)
+			{
+				<div class="alert alert-success text-center">
+					<i class="fas fa-check-circle"></i> Customer already checked in.
+				</div>
+			}
+			else
+			{
+                <button class="btn btn-success w-100 mt-3" id="checkInBtn" data-ticket-id="@Model.PaymentId">
+                    <i class="fas fa-check-circle"></i> Mark as Checked-in
+                </button>
+			}
+        }
+    </div>
+}
+else
+{
+        <div class="alert alert-danger text-center">
+            <i class="fas fa-exclamation-triangle"></i> Ticket not found or already checked in.
+        </div>
+}

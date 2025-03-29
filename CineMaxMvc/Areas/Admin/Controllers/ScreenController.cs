@@ -218,14 +218,31 @@ namespace CineMaxMvc.Areas.Admin.Controllers
 
             var movie = _unitOfWork.Movie.GetOne(m => m.Id == request.MovieId);
 
+            // get all showtime for this date in this screen
+            var existingShowtimes = _unitOfWork.ShowTime.GetAll(s => s.ScreenId == request.ScreenId && s.Date == DateTime.Parse(request.Showtimes.First().Date)).ToList();
+
             try
             {
+                List<ShowTime> newShowtimes = new();
                 foreach (var showtime in request.Showtimes)
                 {
                     foreach (var time in showtime.Times)
                     {
                         var startTime = TimeSpan.Parse(time);
                         var endTime = (DateTime.Today + startTime).AddMinutes(movie.Duration).TimeOfDay;
+
+                        // check if there is anly time conflict with existing showtimes
+                        foreach (var existingShowtime in existingShowtimes)
+                        {
+                            var existingStartTime = DateTime.Today.Add(existingShowtime.StartTime).TimeOfDay;
+                            var existingEndTime = DateTime.Today.Add(existingShowtime.EndTime).TimeOfDay;
+
+                            if ((startTime >= existingStartTime && startTime <= existingEndTime) ||
+                                                               (endTime >= existingStartTime && endTime <= existingEndTime))
+                            {
+                                return Json(new { success = false, message = "Showtime conflict with existing showtimes." });
+                            }
+                        }
 
                         var newShowtime = new ShowTime
                         {
@@ -237,9 +254,11 @@ namespace CineMaxMvc.Areas.Admin.Controllers
                             EndTime = endTime,
                         };
 
-                        _unitOfWork.ShowTime.Add(newShowtime);
+                        newShowtimes.Add(newShowtime);
                     }
                 }
+
+                _unitOfWork.ShowTime.AddRange(newShowtimes);
 
                 _unitOfWork.Save();
 

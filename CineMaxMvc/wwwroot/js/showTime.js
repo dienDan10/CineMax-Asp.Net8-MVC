@@ -171,7 +171,7 @@
 
 
     /* --------- ADD NEW TIME TO SHOW TIME SCRIPT ----------- */
-    // Add data to model when open
+    // Load data to model when open
     $("#addTimeModal").on("show.bs.modal", function (event) {
         let button = $(event.relatedTarget); // Button that triggered the modal
 
@@ -186,6 +186,9 @@
         $("#movieTitleDisplay").val(movieTitle);
         $("#addTimeScreenId").val(screenId);
         $("#addTimeDate").val(showDate);
+        // clear the existing time and price
+        $("#addTimeTime").val("");
+        $("#addTimePrice").val("");
 
         // Disable the date field
         $("#addTimeDate").prop("disabled", true);

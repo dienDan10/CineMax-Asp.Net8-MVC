@@ -9,6 +9,7 @@ namespace Models.ViewModels
         public double Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public string Status { get; set; }
+        public string BookingStatus { get; set; }
         public string TheaterName { get; set; }
         public string TheaterLocation { get; set; }
         public string ScreenName { get; set; }
