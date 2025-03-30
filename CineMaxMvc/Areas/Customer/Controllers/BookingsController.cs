@@ -340,26 +340,10 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 LastUpdatedAt = DateTime.Now
             };
 
-            //if (User.IsInRole(Constant.Role_Admin) || User.IsInRole(Constant.Role_Employee))
-            //{
-            //    payment.PaymentStatus = Constant.PaymentStatus_Success;
-            //    booking.BookingStatus = Constant.BookingStatus_Success;
-            //    booking.IsActive = true;
-            //    concessionOrder.IsActive = true;
-            //    _unitOfWork.Booking.Update(booking);
-            //    _unitOfWork.ConcessionOrder.Update(concessionOrder);
-            //    _unitOfWork.Payment.Add(payment);
-            //    _unitOfWork.Save();
-
-            //    // return to booking comfirmation page
-            //    return RedirectToAction(nameof(BookingConfirmation), new { paymentId = payment.Id });
-            //}
-
             _unitOfWork.Payment.Add(payment);
             _unitOfWork.Save();
 
             // IMPLEMENT PAYMENT GATEWAY FOR NORMAL USERS
-
             var selectedSeats = seatSelection.SelectedSeats;
             var selectedConcessions = seatSelection.SelectedConcessions;
 
@@ -381,8 +365,8 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                 );
 
                 // Update payment with VNPay reference
-                _unitOfWork.Payment.Update(payment);
-                _unitOfWork.Save();
+                //_unitOfWork.Payment.Update(payment);
+                //_unitOfWork.Save();
 
                 // update created time of booking to get user 5 more minutes
                 IncreaseBookingReserveTime(bookingId);
@@ -478,9 +462,16 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             }
 
 
-            // If failed, redirect to failure page
-            _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Success);
+            // HANDLE FAILED PAYMENT
+            // Update payment status
+            _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Failed);
             _unitOfWork.Save();
+
+            // update created time of booking to 5 minutes ago to release the seats
+            if (payment.BookingId != null)
+            {
+                DecreaseBookingReserveTime(payment.BookingId.Value);
+            }
 
             TempData["error"] = "Payment failed. Please try again.";
             return RedirectToAction(nameof(SelectSeat), new { showtimeId = payment.Booking.ShowTimeId });
@@ -531,6 +522,10 @@ namespace CineMaxMvc.Areas.Customer.Controllers
                     _unitOfWork.Payment.UpdateStripePaymentID(payment.Id, session.Id, session.PaymentIntentId);
                     _unitOfWork.Payment.UpdateStatus(payment.Id, Constant.PaymentStatus_Failed);
                     _unitOfWork.Save();
+                    if (payment.BookingId != null)
+                    {
+                        DecreaseBookingReserveTime(payment.BookingId.Value);
+                    }
                     TempData["error"] = "Payment failed. Please try again.";
                     return RedirectToAction(nameof(SelectSeat), new { showtimeId = payment.Booking.ShowTimeId });
                 }
@@ -614,6 +609,16 @@ namespace CineMaxMvc.Areas.Customer.Controllers
             var booking = _unitOfWork.Booking.GetOne(b => b.Id == bookingId);
             booking.CreatedAt = DateTime.Now;
             booking.LastUpdatedAt = DateTime.Now;
+            _unitOfWork.Booking.Update(booking);
+            _unitOfWork.Save();
+        }
+
+        public void DecreaseBookingReserveTime(int bookingId)
+        {
+            if (bookingId == 0) return;
+            var booking = _unitOfWork.Booking.GetOne(b => b.Id == bookingId);
+            booking.CreatedAt = booking.CreatedAt.AddMinutes(-5);
+            booking.LastUpdatedAt = booking.LastUpdatedAt.AddMinutes(-5);
             _unitOfWork.Booking.Update(booking);
             _unitOfWork.Save();
         }
